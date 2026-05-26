@@ -1,0 +1,2565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRINCE2 Foundation — Who Wants to Be Certified?</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #FFD700;
+    --gold-dim: #c9a227;
+    --gold-glow: rgba(255,215,0,0.35);
+    --deep-blue: #050a1a;
+    --mid-blue: #0a1535;
+    --panel-bg: rgba(8, 18, 50, 0.92);
+    --correct: #00e676;
+    --wrong: #ff1744;
+    --lifeline: #00b0ff;
+    --text-main: #f0e6c8;
+    --text-dim: #8899bb;
+    --border: rgba(255,215,0,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Raleway', sans-serif;
+    background: var(--deep-blue);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ---- ACCESS GATE ---- */
+  .gate-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--deep-blue);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .gate-screen.hidden { display: none; }
+
+  .gate-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 44px 40px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255,215,0,0.08);
+    position: relative;
+  }
+
+  .gate-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.4;
+  }
+
+  .gate-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    display: block;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  .gate-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.25rem;
+    color: var(--gold);
+    margin-bottom: 8px;
+    text-shadow: 0 0 20px var(--gold-glow);
+  }
+
+  .gate-sub {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+    line-height: 1.7;
+  }
+
+  .gate-label {
+    display: block;
+    text-align: left;
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .gate-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    color: var(--text-main);
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .gate-input:focus {
+    border-color: var(--gold-dim);
+    box-shadow: 0 0 10px rgba(255,215,0,0.1);
+  }
+
+  .gate-input::placeholder { color: rgba(136,153,187,0.5); }
+
+  .gate-btn {
+    width: 100%;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #b8860b, #FFD700, #b8860b);
+    color: #050a1a;
+    border: none;
+    padding: 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(255,215,0,0.25);
+  }
+
+  .gate-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 25px rgba(255,215,0,0.4);
+  }
+
+  .gate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .gate-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(5,10,26,0.3);
+    border-top-color: #050a1a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .gate-error {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: rgba(255,23,68,0.08);
+    border: 1px solid rgba(255,23,68,0.3);
+    border-radius: 6px;
+    font-size: 0.83rem;
+    color: #ff6b6b;
+    display: none;
+    line-height: 1.5;
+    text-align: left;
+  }
+
+  .gate-error.show { display: block; }
+
+  .gate-success-msg {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: rgba(0,230,118,0.08);
+    border: 1px solid rgba(0,230,118,0.3);
+    border-radius: 6px;
+    font-size: 0.83rem;
+    color: #00e676;
+    display: none;
+    line-height: 1.5;
+  }
+
+  .gate-success-msg.show { display: block; }
+
+  .gate-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0 18px;
+  }
+
+  .gate-divider::before,
+  .gate-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .gate-divider span {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .gate-purchase-btn {
+    width: 100%;
+    font-family: 'Cinzel', serif;
+    font-size: 0.82rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--gold);
+    border: 1.5px solid var(--gold-dim);
+    padding: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+  }
+
+  .gate-purchase-btn:hover {
+    background: rgba(255,215,0,0.08);
+    box-shadow: 0 0 15px rgba(255,215,0,0.15);
+  }
+
+  .gate-fine-print {
+    margin-top: 18px;
+    font-size: 0.74rem;
+    color: rgba(136,153,187,0.5);
+    line-height: 1.6;
+  }
+
+  /* Starfield */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 55% 25%, rgba(255,215,0,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 65% 55%, rgba(255,215,0,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 90%, rgba(255,255,255,0.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 100%, rgba(10,30,80,0.8) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(20,10,60,0.5) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---- SCREENS ---- */
+  .screen { display: none; width: 100%; animation: fadeIn 0.5s ease; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- INTRO SCREEN ---- */
+  .logo-area {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.4rem, 4vw, 2.4rem);
+    color: var(--gold);
+    text-shadow: 0 0 30px var(--gold-glow), 0 0 60px rgba(255,215,0,0.2);
+    line-height: 1.3;
+    letter-spacing: 2px;
+  }
+
+  .logo-sub {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.75rem, 2vw, 1rem);
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+
+  .spotlight {
+    width: 180px;
+    height: 180px;
+    margin: 30px auto;
+    position: relative;
+  }
+
+  .spotlight-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    animation: pulse 3s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(255,215,0,0.1), inset 0 0 40px rgba(255,215,0,0.05);
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,0.1), inset 0 0 30px rgba(255,215,0,0.05); }
+    50% { box-shadow: 0 0 60px rgba(255,215,0,0.3), inset 0 0 40px rgba(255,215,0,0.1); }
+  }
+
+  .intro-desc {
+    max-width: 560px;
+    text-align: center;
+    line-height: 1.8;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+  }
+
+  .intro-desc strong { color: var(--gold); font-weight: 600; }
+
+  .prize-ladder-preview {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+
+  .milestone-chip {
+    background: rgba(255,215,0,0.08);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+  }
+
+  .milestone-chip.gold {
+    background: rgba(255,215,0,0.15);
+    color: var(--gold);
+    border-color: var(--gold-dim);
+  }
+
+  .btn-start {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #b8860b, #FFD700, #b8860b);
+    color: #050a1a;
+    border: none;
+    padding: 18px 60px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+  }
+
+  .btn-start::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+
+  .btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,215,0,0.5); }
+  .btn-start:hover::before { transform: translateX(100%); }
+  .btn-start:active { transform: translateY(0); }
+
+  /* ---- GAME SCREEN ---- */
+  .game-layout {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media(max-width: 700px) {
+    .game-layout { grid-template-columns: 1fr; }
+    .prize-ladder { display: none; }
+  }
+
+  .game-main { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Progress bar */
+  .question-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .question-number { color: var(--gold); font-weight: 600; }
+
+  /* Topic tag */
+  .topic-tag {
+    background: rgba(0,176,255,0.1);
+    border: 1px solid rgba(0,176,255,0.3);
+    color: #00b0ff;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-family: 'Raleway', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Question box */
+  .question-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 32px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,215,0,0.1);
+  }
+
+  .question-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.4;
+  }
+
+  .question-text {
+    font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+    line-height: 1.75;
+    font-weight: 500;
+    color: var(--text-main);
+  }
+
+  /* Lifelines */
+  .lifelines-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .lifeline-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .lifeline-btn {
+    background: rgba(0,176,255,0.08);
+    border: 1.5px solid rgba(0,176,255,0.4);
+    color: var(--lifeline);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .lifeline-btn:hover:not(:disabled) {
+    background: rgba(0,176,255,0.2);
+    box-shadow: 0 0 15px rgba(0,176,255,0.3);
+    transform: scale(1.05);
+  }
+
+  .lifeline-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    border-color: rgba(255,255,255,0.1);
+    color: var(--text-dim);
+  }
+
+  .lifeline-btn .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a1535;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .lifeline-btn { position: relative; }
+  .lifeline-btn:hover .tooltip { display: block; }
+
+  /* Answer options */
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media(max-width: 500px) {
+    .answers-grid { grid-template-columns: 1fr; }
+  }
+
+  .answer-btn {
+    background: rgba(10,21,53,0.8);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    text-align: left;
+    color: var(--text-main);
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    line-height: 1.5;
+  }
+
+  .answer-letter {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 22px;
+    background: rgba(255,215,0,0.08);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .answer-btn:hover:not(:disabled) {
+    border-color: var(--gold-dim);
+    background: rgba(255,215,0,0.07);
+    transform: translateX(4px);
+  }
+
+  .answer-btn:hover:not(:disabled) .answer-letter {
+    background: rgba(255,215,0,0.2);
+  }
+
+  .answer-btn.correct {
+    border-color: var(--correct);
+    background: rgba(0,230,118,0.1);
+    animation: correctFlash 0.6s ease;
+  }
+  .answer-btn.correct .answer-letter {
+    background: rgba(0,230,118,0.2);
+    border-color: var(--correct);
+    color: var(--correct);
+  }
+
+  .answer-btn.wrong {
+    border-color: var(--wrong);
+    background: rgba(255,23,68,0.1);
+    animation: wrongShake 0.5s ease;
+  }
+  .answer-btn.wrong .answer-letter {
+    background: rgba(255,23,68,0.2);
+    border-color: var(--wrong);
+    color: var(--wrong);
+  }
+
+  .answer-btn.eliminated {
+    opacity: 0.18;
+    pointer-events: none;
+    transform: none;
+  }
+
+  .answer-btn:disabled { cursor: default; }
+
+  @keyframes correctFlash {
+    0% { box-shadow: none; }
+    50% { box-shadow: 0 0 25px rgba(0,230,118,0.5); }
+    100% { box-shadow: 0 0 10px rgba(0,230,118,0.2); }
+  }
+
+  @keyframes wrongShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  /* Prize ladder sidebar */
+  .prize-ladder {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  }
+
+  .ladder-header {
+    text-align: center;
+    padding: 14px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: var(--gold);
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    background: rgba(255,215,0,0.04);
+  }
+
+  .ladder-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 16px;
+    font-size: 0.78rem;
+    border-bottom: 1px solid rgba(255,215,0,0.06);
+    transition: all 0.2s;
+    font-family: 'Raleway', sans-serif;
+    color: var(--text-dim);
+  }
+
+  .ladder-item .q-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: rgba(255,215,0,0.4);
+    min-width: 20px;
+  }
+
+  .ladder-item .prize-val {
+    font-weight: 600;
+  }
+
+  .ladder-item.milestone {
+    color: var(--gold-dim);
+    background: rgba(255,215,0,0.04);
+  }
+  .ladder-item.milestone .prize-val { color: var(--gold); }
+
+  .ladder-item.active {
+    background: rgba(255,215,0,0.12);
+    color: var(--gold);
+    font-weight: 700;
+    border-left: 3px solid var(--gold);
+    animation: ladderPulse 1.5s ease-in-out infinite;
+  }
+  .ladder-item.active .prize-val { color: var(--gold); }
+  .ladder-item.active .q-num { color: var(--gold); }
+
+  .ladder-item.passed {
+    color: rgba(0,230,118,0.6);
+    opacity: 0.7;
+  }
+  .ladder-item.passed .prize-val { color: rgba(0,230,118,0.8); }
+
+  @keyframes ladderPulse {
+    0%, 100% { background: rgba(255,215,0,0.10); }
+    50% { background: rgba(255,215,0,0.18); }
+  }
+
+  /* Explanation box */
+  .explanation-box {
+    background: rgba(0,176,255,0.05);
+    border: 1px solid rgba(0,176,255,0.2);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: #a8d4f0;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .explanation-box.visible { display: block; }
+  .explanation-box strong { color: var(--lifeline); }
+
+  .next-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--gold);
+    border: 1.5px solid var(--gold-dim);
+    padding: 12px 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: center;
+    transition: all 0.2s;
+    display: none;
+  }
+  .next-btn.visible { display: block; }
+  .next-btn:hover { background: rgba(255,215,0,0.08); box-shadow: 0 0 15px rgba(255,215,0,0.2); }
+
+  /* ---- AUDIENCE POLL overlay ---- */
+  .audience-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+  }
+  .audience-overlay.show { display: flex; }
+
+  .audience-card {
+    background: var(--mid-blue);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 32px 36px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255,215,0,0.15);
+  }
+
+  .audience-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  .audience-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 16px;
+    height: 140px;
+    margin-bottom: 16px;
+  }
+
+  .bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 70px;
+  }
+
+  .bar-label { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold); font-weight: 700; }
+
+  .bar {
+    width: 100%;
+    background: linear-gradient(to top, #00b0ff, rgba(0,176,255,0.4));
+    border-radius: 4px 4px 0 0;
+    transition: height 1s cubic-bezier(.22,.61,.36,1);
+    min-height: 4px;
+    position: relative;
+  }
+
+  .bar-pct {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-family: 'Raleway', sans-serif;
+  }
+
+  .audience-close {
+    margin-top: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--border);
+    padding: 10px 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .audience-close:hover { background: rgba(255,215,0,0.1); }
+
+  /* ---- RESULT SCREEN ---- */
+  .result-screen {
+    text-align: center;
+    padding: 40px 20px;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .result-badge {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .result-badge.win {
+    background: radial-gradient(circle, rgba(255,215,0,0.2), transparent);
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 40px rgba(255,215,0,0.3);
+  }
+
+  .result-badge.lose {
+    background: radial-gradient(circle, rgba(255,23,68,0.15), transparent);
+    border: 2px solid rgba(255,23,68,0.5);
+  }
+
+  .result-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: var(--gold);
+    margin-bottom: 10px;
+    text-shadow: 0 0 30px var(--gold-glow);
+  }
+
+  .result-subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+
+  .result-score-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .score-big {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 2.5rem;
+    color: var(--gold);
+    display: block;
+    text-shadow: 0 0 20px var(--gold-glow);
+  }
+
+  .score-label {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Cinzel', serif;
+  }
+
+  .result-advice {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 28px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .result-advice strong { color: var(--text-main); }
+
+  .btn-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  .btn-secondary {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--gold);
+    border: 1.5px solid var(--gold-dim);
+    padding: 13px 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(255,215,0,0.08); }
+
+  /* ---- Hotspot line ---- */
+  .hotspot-line {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 99;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== ACCESS GATE ========== -->
+<div class="gate-screen" id="gate-screen">
+  <div class="gate-box">
+    <span class="gate-icon">🎓</span>
+    <div class="gate-title">Access Required</div>
+    <p class="gate-sub">
+      Enter the email address you used to purchase access on Whop to unlock the quiz.
+    </p>
+
+    <label class="gate-label" for="gate-email">Your purchase email</label>
+    <input
+      class="gate-input"
+      type="email"
+      id="gate-email"
+      placeholder="you@email.com"
+      autocomplete="email"
+      onkeydown="if(event.key==='Enter') checkAccess()"
+    />
+
+    <button class="gate-btn" id="gate-btn" onclick="checkAccess()">
+      Verify Access
+    </button>
+
+    <div class="gate-error" id="gate-error"></div>
+    <div class="gate-success-msg" id="gate-success"></div>
+
+    <div class="gate-divider"><span>Don't have access?</span></div>
+
+    <a class="gate-purchase-btn" id="gate-purchase-link" href="#" target="_blank">
+      Purchase Access on Whop →
+    </a>
+
+    <p class="gate-fine-print">
+      Your email is only used to verify your Whop purchase.<br>
+      Access is tied to your session — you may need to re-verify if you clear your browser.
+    </p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ========== INTRO ========== -->
+  <div class="screen active" id="screen-intro">
+    <div class="logo-area">
+      <div class="logo-title">Who Wants to Be<br>PRINCE2 Certified?</div>
+      <div class="logo-sub">Foundation Exam Preparation</div>
+    </div>
+
+    <div class="spotlight">
+      <div class="spotlight-inner">📋</div>
+    </div>
+
+    <p class="intro-desc">
+      Test your <strong>PRINCE2 Foundation</strong> knowledge across all 7 themes, 7 principles, and key processes. Climb the prize ladder by answering correctly — use your <strong>3 lifelines</strong> wisely. Reach the top to prove you're ready for the exam.
+    </p>
+
+    <div class="prize-ladder-preview">
+      <div class="milestone-chip">Principles (20)</div>
+      <div class="milestone-chip">Themes (46)</div>
+      <div class="milestone-chip">Processes (28)</div>
+      <div class="milestone-chip gold">105 Questions Total</div>
+    </div>
+
+    <button class="btn-start" onclick="startGame()">▶ &nbsp; PLAY</button>
+  </div>
+
+  <!-- ========== GAME ========== -->
+  <div class="screen" id="screen-game">
+    <div class="game-layout">
+      <div class="game-main">
+
+        <div class="question-meta">
+          <span class="question-number" id="q-counter">Question 1 of 15</span>
+          <span class="topic-tag" id="q-topic">Principles</span>
+        </div>
+
+        <div class="question-box">
+          <p class="question-text" id="question-text">Loading…</p>
+        </div>
+
+        <div class="lifelines-row">
+          <span class="lifeline-label">Lifelines:</span>
+          <button class="lifeline-btn" id="ll-fifty" onclick="useFiftyFifty()">
+            <span>½½</span>
+            <span class="tooltip">50:50 — Remove 2 wrong answers</span>
+          </button>
+          <button class="lifeline-btn" id="ll-audience" onclick="useAudience()">
+            <span>👥</span>
+            <span class="tooltip">Ask the Audience</span>
+          </button>
+          <button class="lifeline-btn" id="ll-hint" onclick="useHint()">
+            <span>💡</span>
+            <span class="tooltip">PRINCE2 Hint</span>
+          </button>
+        </div>
+
+        <div class="answers-grid" id="answers-grid"></div>
+
+        <div class="explanation-box" id="explanation-box"></div>
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question ›</button>
+
+      </div>
+
+      <!-- Prize ladder -->
+      <div class="prize-ladder">
+        <div class="ladder-header">Prize Ladder</div>
+        <div id="ladder-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== RESULT ========== -->
+  <div class="screen" id="screen-result">
+    <div class="result-screen">
+      <div class="result-badge" id="result-badge">🏆</div>
+      <div class="result-title" id="result-title">Congratulations!</div>
+      <div class="result-subtitle" id="result-subtitle">PRINCE2 FOUNDATION CHAMPION</div>
+      <div class="result-score-box">
+        <span class="score-big" id="score-display">15/15</span>
+        <span class="score-label">Questions Answered Correctly</span>
+      </div>
+      <p class="result-advice" id="result-advice"></p>
+      <div class="btn-row">
+        <button class="btn-start" onclick="startGame()">▶ Play Again</button>
+        <button class="btn-secondary" onclick="showIntro()">↩ Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Audience Poll Overlay -->
+<div class="audience-overlay" id="audience-overlay">
+  <div class="audience-card">
+    <div class="audience-title">📊 Ask the Audience</div>
+    <div class="audience-bars" id="audience-bars"></div>
+    <button class="audience-close" onclick="closeAudience()">Got it — Thanks!</button>
+  </div>
+</div>
+
+<div class="hotspot-line"></div>
+
+<script>
+const QUESTIONS = [
+  // ── PRINCIPLES (20 questions) ──────────────────────────────────────────────
+  {
+    topic: "Principles",
+    question: "Which PRINCE2 principle states that a project must have justifiable reasons to start, and those reasons must remain valid throughout its life?",
+    answers: ["Manage by Stages", "Continued Business Justification", "Focus on Products", "Learn from Experience"],
+    correct: 1,
+    hint: "Think about what keeps a project alive from start to finish — the 'why'.",
+    explanation: "<strong>Continued Business Justification</strong> is the first PRINCE2 principle. The Business Case must be valid at project start and re-assessed at each stage boundary. If justification no longer holds, the project should be closed."
+  },
+  {
+    topic: "Principles",
+    question: "What does the PRINCE2 principle 'Manage by Exception' primarily allow?",
+    answers: ["The Project Manager to override the Project Board", "Each level of management to delegate authority within agreed tolerances", "The Project Board to attend every daily stand-up", "Team managers to escalate all issues immediately"],
+    correct: 1,
+    hint: "Consider what 'exception' means — acting only when something goes outside agreed limits.",
+    explanation: "<strong>Manage by Exception</strong> defines tolerances (time, cost, scope, quality, risk, benefit) at each level. Management only intervenes when a forecast shows tolerances will be exceeded. It enables efficient delegation without micromanagement."
+  },
+  {
+    topic: "Principles",
+    question: "How many principles does PRINCE2 have in total?",
+    answers: ["5", "6", "7", "9"],
+    correct: 2,
+    hint: "PRINCE2 also has 7 themes and 7 processes — the number is consistent.",
+    explanation: "PRINCE2 has <strong>7 principles</strong>: Continued Business Justification, Learn from Experience, Defined Roles & Responsibilities, Manage by Stages, Manage by Exception, Focus on Products, and Tailor to Suit the Project Environment."
+  },
+  {
+    topic: "Principles",
+    question: "Which PRINCE2 principle requires that a project be divided into manageable and controllable sections?",
+    answers: ["Focus on Products", "Manage by Exception", "Manage by Stages", "Tailor to Suit the Project Environment"],
+    correct: 2,
+    hint: "Breaking a project into sections helps with control and review — think checkpoints.",
+    explanation: "<strong>Manage by Stages</strong> requires the project to be planned, monitored, and controlled on a stage-by-stage basis. Stages provide natural review points and give the Project Board control at key junctions."
+  },
+  {
+    topic: "Principles",
+    question: "The 'Focus on Products' principle means PRINCE2 projects are driven primarily by what?",
+    answers: ["Activities and tasks", "Budget and schedule", "Product descriptions and quality criteria", "Stakeholder satisfaction scores"],
+    correct: 2,
+    hint: "If you're not sure what you're making, how do you know when it's done?",
+    explanation: "<strong>Focus on Products</strong> means projects are product-led, not activity-led. Products are defined upfront using Product Descriptions, which include quality criteria, so everyone agrees on what 'done' looks like."
+  },
+  {
+    topic: "Principles",
+    question: "Which principle emphasises that PRINCE2 should not be applied in a one-size-fits-all manner?",
+    answers: ["Learn from Experience", "Manage by Exception", "Tailor to Suit the Project Environment", "Defined Roles and Responsibilities"],
+    correct: 2,
+    hint: "A tiny internal IT upgrade doesn't need the same governance as a billion-pound infrastructure project.",
+    explanation: "<strong>Tailor to Suit the Project Environment</strong> means PRINCE2 must be adapted to suit the size, complexity, importance, capability, and risk of the project. Tailoring ensures the method adds value without unnecessary overhead."
+  },
+  {
+    topic: "Principles",
+    question: "According to the 'Learn from Experience' principle, when should lessons be sought?",
+    answers: ["Only at project closure", "Only during the initiation stage", "Throughout the project, from previous projects and similar work", "Only when issues arise"],
+    correct: 2,
+    hint: "Learning isn't a one-time event in PRINCE2 — it happens continuously.",
+    explanation: "<strong>Learn from Experience</strong> requires lessons to be sought at project start (from previous projects), captured throughout, and passed on at project close. The Lessons Log and Lessons Report are the key management products."
+  },
+  {
+    topic: "Principles",
+    question: "The principle of 'Defined Roles and Responsibilities' in PRINCE2 requires what?",
+    answers: ["A single point of responsibility for all decisions", "Stakeholder interests to be represented: business, user, and supplier", "The Project Manager to also act as the Executive", "All roles to be filled by different individuals"],
+    correct: 1,
+    hint: "PRINCE2 recognises three primary stakeholder interests that must be balanced.",
+    explanation: "<strong>Defined Roles and Responsibilities</strong> ensures that business (why), user (what), and supplier (how) interests are all represented. The Project Board represents all three via the Executive, Senior User, and Senior Supplier roles."
+  },
+  {
+    topic: "Principles",
+    question: "Which PRINCE2 principle would be breached if a project continued after its Business Case became invalid?",
+    answers: ["Manage by Stages", "Focus on Products", "Continued Business Justification", "Manage by Exception"],
+    correct: 2,
+    hint: "If the 'why' disappears, the project should stop.",
+    explanation: "<strong>Continued Business Justification</strong> states that a project should only continue if a valid business justification exists. If the Business Case is no longer achievable, viable, or desirable, the project should be closed prematurely."
+  },
+  {
+    topic: "Principles",
+    question: "Which document is the primary vehicle for recording lessons learned during a PRINCE2 project?",
+    answers: ["Issue Register", "Risk Register", "Lessons Log", "Daily Log"],
+    correct: 2,
+    hint: "The name gives it away — it's where lessons are logged.",
+    explanation: "The <strong>Lessons Log</strong> is used to record lessons throughout the project. At project close, the Lessons Report is created from it and sent to corporate/programme management so future projects can benefit."
+  },
+  {
+    topic: "Principles",
+    question: "In PRINCE2, tolerances represent the acceptable deviation for which six aspects of a project?",
+    answers: ["Time, cost, scope, quality, risk, and benefits", "Time, cost, scope, quality, staff, and benefits", "Time, cost, resources, quality, risk, and change", "Budget, schedule, scope, team, risk, and return"],
+    correct: 0,
+    hint: "These six aspects appear across multiple PRINCE2 themes and form the basis of performance targets.",
+    explanation: "The six performance targets in PRINCE2 are <strong>time, cost, scope, quality, risk, and benefits</strong>. Tolerances are set for each, and if a forecast breach is identified, it must be escalated as an exception."
+  },
+  {
+    topic: "Principles",
+    question: "What is a 'management stage' in PRINCE2?",
+    answers: ["A technical phase of building a product", "A section of the project that the Project Manager manages on behalf of the Project Board", "A period when the Project Board reviews risks", "A sprint within an agile work package"],
+    correct: 1,
+    hint: "Think about who is managing what, and at what level of authority.",
+    explanation: "A <strong>management stage</strong> is a collection of activities and products that the Project Manager manages on a day-to-day basis on behalf of the Project Board. At minimum, PRINCE2 requires at least two stages: initiation and one delivery stage."
+  },
+  {
+    topic: "Principles",
+    question: "Which principle is most closely associated with the Project Manager issuing an Exception Report to the Project Board?",
+    answers: ["Manage by Stages", "Manage by Exception", "Focus on Products", "Continued Business Justification"],
+    correct: 1,
+    hint: "When tolerance is forecast to be breached, it's time to escalate — that's an exception.",
+    explanation: "<strong>Manage by Exception</strong> drives the Exception Report. When the Project Manager forecasts that a stage will exceed its agreed tolerances, they raise an Exception Report to the Project Board, who then decide whether to issue an Exception Plan."
+  },
+  {
+    topic: "Principles",
+    question: "A project closes early because the expected benefits are no longer achievable. Which principle prompted this decision?",
+    answers: ["Learn from Experience", "Continued Business Justification", "Focus on Products", "Manage by Stages"],
+    correct: 1,
+    hint: "If the return on investment disappears, so does the reason to continue.",
+    explanation: "<strong>Continued Business Justification</strong> — if the Business Case becomes invalid (benefits can't be achieved, costs have spiralled, or the need has gone), PRINCE2 requires the project to be closed. Continuing would breach this principle."
+  },
+  {
+    topic: "Principles",
+    question: "According to PRINCE2, what are the minimum number of management stages a project must have?",
+    answers: ["One", "Two", "Three", "Four"],
+    correct: 1,
+    hint: "There's always an initiation stage — what must follow it?",
+    explanation: "PRINCE2 requires a minimum of <strong>two management stages</strong>: the initiation stage and at least one further delivery stage. More stages may be added depending on project complexity, risk, and duration."
+  },
+  {
+    topic: "Principles",
+    question: "Which principle underpins the use of Product Descriptions in PRINCE2?",
+    answers: ["Manage by Stages", "Focus on Products", "Learn from Experience", "Tailor to Suit the Project Environment"],
+    correct: 1,
+    hint: "If you define what a product must look like before building it, which principle is that?",
+    explanation: "<strong>Focus on Products</strong> drives the use of Product Descriptions. These define the purpose, composition, quality criteria, and quality method for each product — ensuring everyone agrees on what needs to be produced."
+  },
+  {
+    topic: "Principles",
+    question: "Which PRINCE2 principle ensures that an organisation's lessons from previous projects are utilised at project start?",
+    answers: ["Defined Roles and Responsibilities", "Learn from Experience", "Tailor to Suit the Project Environment", "Continued Business Justification"],
+    correct: 1,
+    hint: "Why reinvent the wheel? Look back before moving forward.",
+    explanation: "<strong>Learn from Experience</strong> requires the project team to seek lessons from previous similar projects during the Starting Up a Project process. These inform the approach, risks, and plans from the very beginning."
+  },
+  {
+    topic: "Principles",
+    question: "Applying PRINCE2 to a small, low-risk internal project with reduced documentation is an application of which principle?",
+    answers: ["Manage by Exception", "Focus on Products", "Tailor to Suit the Project Environment", "Manage by Stages"],
+    correct: 2,
+    hint: "PRINCE2 is never a tick-box exercise — it should be right-sized.",
+    explanation: "<strong>Tailor to Suit the Project Environment</strong> explicitly allows and encourages the adaptation of PRINCE2's themes, processes, and management products to suit the project's scale and context — reducing overhead where appropriate."
+  },
+  {
+    topic: "Principles",
+    question: "Who is ultimately responsible for ensuring that the Business Case remains valid throughout the project?",
+    answers: ["Project Manager", "Senior User", "Executive", "Project Support"],
+    correct: 2,
+    hint: "This role is accountable for the investment decision.",
+    explanation: "The <strong>Executive</strong> is responsible for the Business Case throughout the project. They own the investment decision and must ensure that the project continues to deliver value for money. The Business Case is created with input from the Senior User and Senior Supplier."
+  },
+  {
+    topic: "Principles",
+    question: "PRINCE2's seven principles are best described as:",
+    answers: ["Optional guidelines that can be adopted if suitable", "Universal best practices that must always be applied, even if tailored", "Legal requirements for project management", "Recommended practices that replace the organisation's existing methods"],
+    correct: 1,
+    hint: "Principles are not optional — without them, you're not running a PRINCE2 project.",
+    explanation: "PRINCE2's <strong>7 principles are universal and obligatory</strong>. If a project does not apply them, it cannot claim to be using PRINCE2. However, how themes and processes are applied can be tailored — but the principles must always be present."
+  },
+
+  // ── THEMES – BUSINESS CASE (8 questions) ──────────────────────────────────
+  {
+    topic: "Business Case",
+    question: "In PRINCE2, the Business Case is developed and maintained under which theme?",
+    answers: ["Organisation", "Change", "Business Case", "Risk"],
+    correct: 2,
+    hint: "The theme is named directly after the key management product it governs.",
+    explanation: "The <strong>Business Case</strong> theme ensures the project is and remains desirable, viable, and achievable. It is developed during initiation and reviewed at every stage boundary and end of project."
+  },
+  {
+    topic: "Business Case",
+    question: "Which three criteria must a Business Case satisfy in PRINCE2?",
+    answers: ["Achievable, Fundable, and Approved", "Desirable, Viable, and Achievable", "Clear, Funded, and Prioritised", "Justified, Planned, and Reviewed"],
+    correct: 1,
+    hint: "Think about whether the project is worth doing, can be done, and can be delivered.",
+    explanation: "A PRINCE2 Business Case must be <strong>desirable</strong> (the benefits outweigh the costs and risks), <strong>viable</strong> (the project can deliver the required outcomes), and <strong>achievable</strong> (the organisation can realise the benefits)."
+  },
+  {
+    topic: "Business Case",
+    question: "During which PRINCE2 process is the outline Business Case first created?",
+    answers: ["Initiating a Project", "Starting Up a Project", "Directing a Project", "Controlling a Stage"],
+    correct: 1,
+    hint: "The Business Case starts as an outline before it's fully developed.",
+    explanation: "The outline Business Case is first created during <strong>Starting Up a Project</strong>, based on the Project Mandate. It is then fully developed during Initiating a Project when costs, timescales, risks, and benefits are better understood."
+  },
+  {
+    topic: "Business Case",
+    question: "What document does the Project Manager produce at the end of a project to compare the actual benefits achieved against those forecast in the Business Case?",
+    answers: ["End Project Report", "Lessons Report", "Benefits Management Approach", "Project Closure Notification"],
+    correct: 0,
+    hint: "This report wraps up the whole project — it looks back at what was promised and what was delivered.",
+    explanation: "The <strong>End Project Report</strong> compares actual results against the baseline Business Case, including costs, timescales, and initial benefit realisation. Post-project benefit reviews are planned in the Benefits Management Approach."
+  },
+  {
+    topic: "Business Case",
+    question: "Who is responsible for confirming that benefits have been realised after the project closes?",
+    answers: ["Project Manager", "Senior Supplier", "Executive / Senior User", "Project Assurance"],
+    correct: 2,
+    hint: "Benefits often materialise after the project — responsibility must continue.",
+    explanation: "Benefit realisation after project closure is the responsibility of the <strong>Executive and Senior User</strong>. The Benefits Management Approach (formerly Benefits Review Plan) defines when and how benefits will be measured post-project."
+  },
+  {
+    topic: "Business Case",
+    question: "What is the primary purpose of the Benefits Management Approach in PRINCE2?",
+    answers: ["To define the project's scope and exclusions", "To outline how and when benefits will be measured and who is responsible", "To document risks that could prevent benefit realisation", "To assign costs to each business benefit"],
+    correct: 1,
+    hint: "How do you know you've achieved the 'why' of the project if you don't plan to measure it?",
+    explanation: "The <strong>Benefits Management Approach</strong> defines the benefits expected, when they will be measurable, how they will be measured, and who is responsible. It is maintained throughout the project and handed to corporate management at project close."
+  },
+  {
+    topic: "Business Case",
+    question: "At a stage boundary, the Project Board reviews the Business Case. What are they checking for?",
+    answers: ["Whether the project team is performing well enough", "Whether the justification for continuing the project remains valid", "Whether the original scope has been adhered to", "Whether all risks have been resolved"],
+    correct: 1,
+    hint: "Every stage boundary is a formal 'should we continue?' moment.",
+    explanation: "At each stage boundary the Project Board reviews whether the <strong>Business Case remains desirable, viable, and achievable</strong>. If it does not, they should direct the Project Manager to close the project rather than continue into the next stage."
+  },
+  {
+    topic: "Business Case",
+    question: "In PRINCE2, who has primary responsibility for creating the Business Case?",
+    answers: ["Senior User", "Project Manager on behalf of the Executive", "Project Assurance", "Senior Supplier"],
+    correct: 1,
+    hint: "The Project Manager does the work, but one Project Board member owns it.",
+    explanation: "The <strong>Project Manager creates the Business Case on behalf of the Executive</strong>, who owns and is ultimately responsible for it. The Senior User provides information on expected benefits; the Senior Supplier advises on costs and feasibility."
+  },
+
+  // ── THEMES – ORGANISATION (8 questions) ───────────────────────────────────
+  {
+    topic: "Organisation",
+    question: "In the PRINCE2 Organisation theme, who represents the interests of the users of the project's outputs?",
+    answers: ["Executive", "Senior Supplier", "Senior User", "Project Manager"],
+    correct: 2,
+    hint: "Which role ensures the right product is built for the people who will use it?",
+    explanation: "The <strong>Senior User</strong> represents those who will use the project's products, specify requirements, and realise the benefits. The Executive is accountable for the Business Case; the Senior Supplier represents those providing resources and expertise."
+  },
+  {
+    topic: "Organisation",
+    question: "How many management levels does the PRINCE2 project management team have?",
+    answers: ["Two", "Three", "Four", "Five"],
+    correct: 2,
+    hint: "Count from the sponsoring organisation down to the people doing the work.",
+    explanation: "PRINCE2 defines <strong>four management levels</strong>: Corporate/Programme Management, the Project Board (directing), the Project Manager (managing), and Team Manager(s) (delivering). Project Support and Project Assurance are supporting roles."
+  },
+  {
+    topic: "Organisation",
+    question: "What is the primary role of the Executive on a PRINCE2 project?",
+    answers: ["To manage the day-to-day delivery of the project", "To be accountable for the project and own the Business Case", "To represent the supplier community on the Project Board", "To carry out quality reviews of all project products"],
+    correct: 1,
+    hint: "This role has ultimate accountability — the 'buck stops here'.",
+    explanation: "The <strong>Executive</strong> is the single accountable owner of the Business Case and is ultimately responsible for the project's success. They chair the Project Board and represent the business interests of the project."
+  },
+  {
+    topic: "Organisation",
+    question: "Project Assurance in PRINCE2 is the responsibility of:",
+    answers: ["Project Support", "The Project Manager", "Each Project Board member for their area of interest", "The Team Manager"],
+    correct: 2,
+    hint: "Assurance is about checking — and it belongs to those who are accountable.",
+    explanation: "<strong>Project Assurance</strong> is the responsibility of each Project Board member for their respective interests: business assurance (Executive), user assurance (Senior User), and supplier assurance (Senior Supplier). It cannot be delegated to the Project Manager."
+  },
+  {
+    topic: "Organisation",
+    question: "Which role in PRINCE2 manages the Team Manager(s) and is accountable to the Project Board?",
+    answers: ["Senior User", "Project Support", "Project Manager", "Project Assurance"],
+    correct: 2,
+    hint: "This role sits between the Project Board and the delivery teams.",
+    explanation: "The <strong>Project Manager</strong> has day-to-day responsibility for running the project on behalf of the Project Board. They issue Work Packages to Team Managers and report progress to the Project Board."
+  },
+  {
+    topic: "Organisation",
+    question: "In PRINCE2, can one person hold multiple roles on the project management team?",
+    answers: ["No — every role must be assigned to a different person", "Yes — as long as there is no conflict of interest and the workload is manageable", "Only the Project Manager can hold two roles", "Only if the project has fewer than five people"],
+    correct: 1,
+    hint: "PRINCE2 separates roles from people — tailoring allows combining where appropriate.",
+    explanation: "PRINCE2 defines roles, not people. <strong>One person can hold multiple roles</strong> as long as there is no conflict of interest (e.g., the Project Manager cannot also be the Executive) and the combined workload is manageable."
+  },
+  {
+    topic: "Organisation",
+    question: "What is the purpose of the Communication Management Approach in PRINCE2?",
+    answers: ["To define how risks will be communicated to stakeholders", "To describe how information will flow to and from stakeholders inside and outside the project", "To set the frequency of Project Board meetings", "To track which team members have been informed of changes"],
+    correct: 1,
+    hint: "Who needs to know what, when, and in what format?",
+    explanation: "The <strong>Communication Management Approach</strong> defines the means and frequency of communication between the project and its stakeholders — both internal (Project Board) and external (corporate management, end users, suppliers). It supports the Organisation theme."
+  },
+  {
+    topic: "Organisation",
+    question: "Which Project Board role represents those who will provide the skills, people, and resources to create the project's products?",
+    answers: ["Executive", "Senior User", "Senior Supplier", "Team Manager"],
+    correct: 2,
+    hint: "This role is the voice of the people who actually build things.",
+    explanation: "The <strong>Senior Supplier</strong> represents supplier interests on the Project Board. They are responsible for ensuring the supplier aspects of the project are feasible and that the resources and expertise required are available."
+  },
+
+  // ── THEMES – QUALITY (8 questions) ────────────────────────────────────────
+  {
+    topic: "Quality",
+    question: "In PRINCE2, what is the primary purpose of a Quality Register?",
+    answers: ["To list all project risks and their owners", "To summarise planned and completed quality activities and results", "To document approved changes to baselines", "To record all project issues"],
+    correct: 1,
+    hint: "Think of it as the audit trail for quality activities — what was planned vs. what happened.",
+    explanation: "The <strong>Quality Register</strong> is used to summarise all planned quality management activities (reviews, inspections, tests) and their results. It provides a management audit trail and is created during the Initiating a Project process."
+  },
+  {
+    topic: "Quality",
+    question: "What is a Product Description in PRINCE2?",
+    answers: ["A high-level summary of the project's deliverables", "A detailed specification of a product including its purpose, composition, quality criteria, and quality method", "A list of all products in the project", "A change request form for a product"],
+    correct: 1,
+    hint: "It answers: what is this product, what's it made of, and how will we know it's good enough?",
+    explanation: "A <strong>Product Description</strong> defines a product's purpose, composition, derivation, format, quality criteria, quality tolerance, and quality method. It is the baseline against which the finished product is measured."
+  },
+  {
+    topic: "Quality",
+    question: "What does 'quality planning' mean in the context of PRINCE2's Quality theme?",
+    answers: ["Scheduling time for quality checks into the project plan", "Defining what quality means for the project and how it will be achieved", "Producing the Quality Register at stage boundaries", "Carrying out product reviews at the end of each stage"],
+    correct: 1,
+    hint: "Before you can check quality, you need to agree what quality looks like.",
+    explanation: "<strong>Quality planning</strong> involves defining the quality management approach and creating Product Descriptions. It answers: what quality standards apply, what products must meet those standards, and how quality will be confirmed."
+  },
+  {
+    topic: "Quality",
+    question: "Which management product defines the overall approach to quality for the entire project?",
+    answers: ["Quality Register", "Quality Management Approach", "Product Description", "Work Package"],
+    correct: 1,
+    hint: "There's a strategy/approach document for each of the key PRINCE2 themes.",
+    explanation: "The <strong>Quality Management Approach</strong> describes the quality management standards, tools, techniques, and responsibilities that will be applied throughout the project. It is created during the Initiating a Project process."
+  },
+  {
+    topic: "Quality",
+    question: "In PRINCE2, 'quality control' refers to:",
+    answers: ["Reviewing the Project Plan for completeness", "The techniques and activities used to verify that products meet their quality criteria", "Updating the Quality Register at stage boundaries", "Auditing the supplier's processes"],
+    correct: 1,
+    hint: "Control is about checking the products themselves — not planning or managing.",
+    explanation: "<strong>Quality control</strong> in PRINCE2 involves the actual checking of products against their quality criteria (e.g., testing, inspections, reviews). Quality control produces quality records which are summarised in the Quality Register."
+  },
+  {
+    topic: "Quality",
+    question: "Who defines the quality expectations for the project's products in PRINCE2?",
+    answers: ["Project Manager", "Senior Supplier", "Executive and Senior User", "Project Assurance"],
+    correct: 2,
+    hint: "Think about who benefits from the products and who funds them.",
+    explanation: "The <strong>Executive and Senior User</strong> define customer quality expectations. These are captured in the Project Product Description and form the basis for quality planning. The Senior Supplier then confirms they are achievable."
+  },
+  {
+    topic: "Quality",
+    question: "What is the Project Product Description in PRINCE2?",
+    answers: ["The description of the single most important product in the project", "A high-level description of the overall output of the project, including customer quality expectations", "The same as a Work Package but at project level", "A description produced at the start of each stage"],
+    correct: 1,
+    hint: "This is the 'what the project must deliver overall' document, not for individual products.",
+    explanation: "The <strong>Project Product Description</strong> describes the overall project output at a high level, including its purpose, composition, quality expectations, and acceptance criteria. It is created during Starting Up a Project and forms part of the PID."
+  },
+  {
+    topic: "Quality",
+    question: "In PRINCE2, who is responsible for carrying out a quality review?",
+    answers: ["The Project Manager only", "Only external QA auditors", "The team producing the product", "Independent reviewers not directly responsible for producing the product"],
+    correct: 3,
+    hint: "To be effective, a quality review needs objectivity.",
+    explanation: "Quality reviews in PRINCE2 should be carried out by people who are <strong>independent from those who produced the product</strong>. This objectivity ensures that defects are identified without conflict of interest."
+  },
+
+  // ── THEMES – PLANS (8 questions) ──────────────────────────────────────────
+  {
+    topic: "Plans",
+    question: "Which PRINCE2 theme answers the question: 'What do we need, when do we need it, and what will it cost?'",
+    answers: ["Risk", "Plans", "Quality", "Progress"],
+    correct: 1,
+    hint: "Planning answers the 'what, how, when, and how much' questions.",
+    explanation: "The <strong>Plans</strong> theme answers 'What? How? When? How much?'. PRINCE2 requires three levels of plan: Project Plan, Stage Plan, and (optionally) Team Plan. Plans facilitate communication and control."
+  },
+  {
+    topic: "Plans",
+    question: "Which three levels of plan does PRINCE2 define?",
+    answers: ["Programme Plan, Project Plan, Stage Plan", "Project Plan, Stage Plan, Team Plan", "Project Plan, Sprint Plan, Team Plan", "Master Plan, Stage Plan, Work Package"],
+    correct: 1,
+    hint: "Think top-down: overall project, then a stage, then the team doing the work.",
+    explanation: "PRINCE2 defines three planning levels: the <strong>Project Plan</strong> (overall), the <strong>Stage Plan</strong> (for each management stage), and optionally the <strong>Team Plan</strong> (for Team Managers). Each adds more detail at a lower level."
+  },
+  {
+    topic: "Plans",
+    question: "What is the recommended approach used in PRINCE2 for creating plans?",
+    answers: ["Gantt chart decomposition", "Product-based planning", "Critical path analysis", "Agile sprint planning"],
+    correct: 1,
+    hint: "PRINCE2 is product-led — that extends to how you plan.",
+    explanation: "<strong>Product-based planning</strong> is PRINCE2's recommended planning technique. It starts with defining the products (outputs) required, using a Product Breakdown Structure and Product Descriptions, before activities and resources are identified."
+  },
+  {
+    topic: "Plans",
+    question: "What does a Product Breakdown Structure (PBS) show in PRINCE2?",
+    answers: ["The sequence of activities needed to build the project", "A hierarchical breakdown of all the products to be produced", "The allocation of work to team members", "The budget breakdown across project products"],
+    correct: 1,
+    hint: "It's a hierarchy of products — not activities.",
+    explanation: "The <strong>Product Breakdown Structure</strong> is a hierarchy showing all the products (and sub-products) that the project will produce. It is the first step in product-based planning, before sequencing and estimating activities."
+  },
+  {
+    topic: "Plans",
+    question: "At which PRINCE2 process is the Project Plan created?",
+    answers: ["Starting Up a Project", "Initiating a Project", "Controlling a Stage", "Managing a Stage Boundary"],
+    correct: 1,
+    hint: "The Project Plan is a core part of the PID — where is the PID assembled?",
+    explanation: "The <strong>Project Plan</strong> is created during <strong>Initiating a Project</strong>, where it forms a key part of the Project Initiation Documentation (PID). It covers the entire project at a high level, including major products, timescales, and costs."
+  },
+  {
+    topic: "Plans",
+    question: "What does a Product Flow Diagram show in PRINCE2 planning?",
+    answers: ["How products are assigned to team members", "The dependencies between products and the sequence in which they are produced", "The cost of producing each product", "The quality checks associated with each product"],
+    correct: 1,
+    hint: "After you know what you're building, you need to know in what order.",
+    explanation: "A <strong>Product Flow Diagram</strong> shows the sequence and dependencies between products. It visualises which products must be created before others and helps identify the critical path before activities are estimated."
+  },
+  {
+    topic: "Plans",
+    question: "When is a Stage Plan created in PRINCE2?",
+    answers: ["During the initiation stage for all future stages", "Towards the end of the preceding stage during Managing a Stage Boundary", "At the very start of the project", "During the Closing a Project process"],
+    correct: 1,
+    hint: "You can only plan in detail what you know is coming next — not the whole future.",
+    explanation: "Stage Plans are created <strong>towards the end of the current stage</strong> as part of the Managing a Stage Boundary process. This 'rolling wave' approach means you plan in detail only when you're close enough to the next stage to do so accurately."
+  },
+  {
+    topic: "Plans",
+    question: "An Exception Plan in PRINCE2 is created to replace:",
+    answers: ["The Project Plan when the project is closed early", "The current Stage Plan when tolerances are forecast to be exceeded", "The Team Plan when a Work Package cannot be delivered", "The Benefits Management Approach at a stage boundary"],
+    correct: 1,
+    hint: "When a stage goes off-track, you need a new plan — not a patch on the old one.",
+    explanation: "An <strong>Exception Plan</strong> replaces the current Stage Plan when its tolerances are forecast to be exceeded. It is produced by the Project Manager following an Exception Report, and approved by the Project Board via a Directing a Project activity."
+  },
+
+  // ── THEMES – RISK (8 questions) ────────────────────────────────────────────
+  {
+    topic: "Risk",
+    question: "What is the first step in the PRINCE2 risk management procedure?",
+    answers: ["Assess", "Plan", "Identify", "Implement"],
+    correct: 2,
+    hint: "You must know a risk exists before you can do anything about it.",
+    explanation: "The PRINCE2 risk management procedure has five steps: <strong>Identify</strong> → Assess → Plan → Implement → Communicate. Identification is always the starting point."
+  },
+  {
+    topic: "Risk",
+    question: "In PRINCE2, risks include both threats AND:",
+    answers: ["Issues", "Changes", "Opportunities", "Defects"],
+    correct: 2,
+    hint: "Not all uncertainty is bad — PRINCE2 manages positive uncertainty too.",
+    explanation: "PRINCE2 defines risk as any uncertain event that could affect objectives — either negatively (<strong>threats</strong>) or positively (<strong>opportunities</strong>). Both must be identified, assessed, and managed."
+  },
+  {
+    topic: "Risk",
+    question: "Which management product is used to record all identified risks on a PRINCE2 project?",
+    answers: ["Daily Log", "Issue Register", "Risk Register", "Lessons Log"],
+    correct: 2,
+    hint: "There's a dedicated register for this — its name is self-explanatory.",
+    explanation: "The <strong>Risk Register</strong> is the management product used to record all identified risks, their assessments, and planned responses. It is created during Initiating a Project and maintained throughout."
+  },
+  {
+    topic: "Risk",
+    question: "In PRINCE2 risk assessment, 'probability' refers to:",
+    answers: ["The impact of the risk if it occurs", "The likelihood that the risk will occur", "The cost of the risk response", "The proximity of the risk in time"],
+    correct: 1,
+    hint: "Probability = how likely; impact = how bad.",
+    explanation: "<strong>Probability</strong> is the likelihood (chance) that a risk will occur. Impact is the effect if it does. PRINCE2 assesses risks on both dimensions to produce an overall risk score, used to prioritise responses."
+  },
+  {
+    topic: "Risk",
+    question: "Which PRINCE2 risk response option involves the project manager deciding to take no action and simply monitor the risk?",
+    answers: ["Transfer", "Reduce", "Accept", "Avoid"],
+    correct: 2,
+    hint: "Sometimes a risk is so unlikely or so low-impact that action isn't worth it.",
+    explanation: "<strong>Accept</strong> is a risk response where the project decides to take no proactive action. It is appropriate when the cost of response outweighs the expected impact, or when the risk is so unlikely that monitoring is sufficient."
+  },
+  {
+    topic: "Risk",
+    question: "The 'Communicate' step in the PRINCE2 risk management procedure runs:",
+    answers: ["Only at project initiation", "In parallel with all other steps throughout the procedure", "Only after risks have been responded to", "Only when risks are escalated to the Project Board"],
+    correct: 1,
+    hint: "Communication isn't a final step — it supports everything else.",
+    explanation: "<strong>Communicate</strong> runs in parallel with all other steps. Risk information must be shared with relevant stakeholders throughout the process — not just at the end. This ensures transparency and enables timely decisions."
+  },
+  {
+    topic: "Risk",
+    question: "What is a Risk Budget in PRINCE2?",
+    answers: ["The cost of all identified risks if they all materialise", "A fund set aside to pay for risk responses if risks are triggered", "The amount allocated to the Risk Manager's salary", "The cost estimate variance allowed in the Stage Plan"],
+    correct: 1,
+    hint: "If your risk responses cost money, where does that money come from?",
+    explanation: "A <strong>Risk Budget</strong> is a financial reserve specifically for funding risk responses. It is separate from the project's contingency and is held by the Executive. Not all projects will have a Risk Budget."
+  },
+  {
+    topic: "Risk",
+    question: "Which document defines the risk management approach to be used throughout a PRINCE2 project?",
+    answers: ["Risk Register", "Project Initiation Documentation", "Risk Management Approach", "Exception Report"],
+    correct: 2,
+    hint: "Every major theme has a strategy or approach document — risk is no different.",
+    explanation: "The <strong>Risk Management Approach</strong> (formerly Risk Management Strategy) defines the procedures, tools, and techniques for identifying, assessing, and responding to risk. It is created during Initiating a Project."
+  },
+
+  // ── THEMES – CHANGE (7 questions) ─────────────────────────────────────────
+  {
+    topic: "Change",
+    question: "Which PRINCE2 theme addresses the impact of any proposed changes to approved baselines?",
+    answers: ["Risk", "Change", "Progress", "Plans"],
+    correct: 1,
+    hint: "Changes to what has already been agreed need to be controlled.",
+    explanation: "The <strong>Change</strong> theme deals with how PRINCE2 handles issues (including changes, off-specifications, and problems). It defines the Issue and Change Control procedure and uses a Change Authority/Change Budget."
+  },
+  {
+    topic: "Change",
+    question: "In PRINCE2, what are the three types of issue?",
+    answers: ["Risk, Change Request, Problem/Concern", "Request for Change, Off-Specification, Problem/Concern", "Change, Issue, Risk", "Bug, Enhancement, Problem"],
+    correct: 1,
+    hint: "One type asks for something extra, one reports a deviation, and one is a general problem.",
+    explanation: "PRINCE2 defines three types of issue: a <strong>Request for Change</strong> (proposed change to the agreed scope), an <strong>Off-Specification</strong> (a product that doesn't meet its specification), and a <strong>Problem/Concern</strong> (anything else the PM needs to resolve)."
+  },
+  {
+    topic: "Change",
+    question: "What is a Change Authority in PRINCE2?",
+    answers: ["The Project Board member who signs off all change requests", "A person or group to whom the Project Board delegates change approval decisions", "The Project Manager's authority to implement changes within tolerance", "An external stakeholder who must approve scope changes"],
+    correct: 1,
+    hint: "The Project Board doesn't have to approve every single change themselves.",
+    explanation: "A <strong>Change Authority</strong> is a person or group to whom the Project Board delegates authority for approving changes below a certain threshold. This prevents the Project Board from being overwhelmed by minor change requests."
+  },
+  {
+    topic: "Change",
+    question: "What is a Change Budget in PRINCE2?",
+    answers: ["A contingency held for schedule overruns", "A fund to pay for approved requests for change", "The Project Board's reserve for Risk responses", "A tolerance applied to the project's scope"],
+    correct: 1,
+    hint: "If a change is approved, the money has to come from somewhere.",
+    explanation: "A <strong>Change Budget</strong> is a fund set aside to pay for approved Requests for Change. It prevents approved changes from requiring the entire budget to be re-baselined and is managed by the Change Authority."
+  },
+  {
+    topic: "Change",
+    question: "Which management product records all open and closed issues on a PRINCE2 project?",
+    answers: ["Daily Log", "Risk Register", "Issue Register", "Change Log"],
+    correct: 2,
+    hint: "There's a dedicated register for issues — similar to the one for risks.",
+    explanation: "The <strong>Issue Register</strong> is used to capture, assess, and track all formal issues throughout the project. Minor issues that the Project Manager can handle informally may be tracked in the Daily Log instead."
+  },
+  {
+    topic: "Change",
+    question: "What is 'configuration management' in PRINCE2?",
+    answers: ["Managing the IT system configurations within the project", "The process for controlling, tracking, and reporting on the project's products", "Setting up the project management team structure", "Configuring the Risk Register at project start"],
+    correct: 1,
+    hint: "You need to know what version of each product exists and where it is at all times.",
+    explanation: "<strong>Configuration management</strong> in PRINCE2 is a discipline for tracking product versions, their status, and their relationships. The Configuration Management Approach defines how this will be done, and the Configuration Item Records track individual products."
+  },
+  {
+    topic: "Change",
+    question: "Which PRINCE2 document provides a record of the history, current status, and relationship of a product?",
+    answers: ["Product Description", "Issue Register", "Configuration Item Record", "Quality Register"],
+    correct: 2,
+    hint: "Every product needs its own identity card showing its history and current status.",
+    explanation: "A <strong>Configuration Item Record</strong> tracks the status, version, relationships, and history of a specific product. Together, they form the Configuration Library and are a key output of configuration management."
+  },
+
+  // ── THEMES – PROGRESS (7 questions) ───────────────────────────────────────
+  {
+    topic: "Progress",
+    question: "Which PRINCE2 theme is concerned with measuring actual performance against plans and maintaining forecasts?",
+    answers: ["Plans", "Risk", "Progress", "Change"],
+    correct: 2,
+    hint: "Once a plan is in place, you need to track how things are going.",
+    explanation: "The <strong>Progress</strong> theme provides mechanisms for monitoring and comparing actual achievements against planned achievements, forecasting the impact of deviations, and controlling unacceptable deviations."
+  },
+  {
+    topic: "Progress",
+    question: "A Highlight Report in PRINCE2 is:",
+    answers: ["A report produced by the Project Board for corporate management", "A periodic report from the Project Manager to the Project Board summarising stage progress", "A report produced at stage boundaries summarising all completed work", "An exception report raised when tolerances are forecast to be breached"],
+    correct: 1,
+    hint: "It's a regular update going upward — from PM to Project Board.",
+    explanation: "A <strong>Highlight Report</strong> is produced periodically by the Project Manager and sent to the Project Board. It provides a snapshot of stage progress, budget status, and risks/issues. Frequency is set in the Stage Plan."
+  },
+  {
+    topic: "Progress",
+    question: "What triggers an Exception Report in PRINCE2?",
+    answers: ["The end of each management stage", "A forecast that a stage will exceed its agreed tolerances", "A change request being submitted", "An issue being escalated by the Team Manager"],
+    correct: 1,
+    hint: "Tolerances are breached (in forecast) — time to escalate.",
+    explanation: "An <strong>Exception Report</strong> is produced by the Project Manager when it is forecast that a stage will exceed its agreed tolerances. It is sent to the Project Board, who then decide whether to issue an Exception Plan or close the project."
+  },
+  {
+    topic: "Progress",
+    question: "A Checkpoint Report in PRINCE2 is produced by:",
+    answers: ["The Project Manager to the Project Board", "The Team Manager to the Project Manager", "The Project Board to corporate management", "Project Assurance to the Executive"],
+    correct: 1,
+    hint: "Think about the level below the Project Manager.",
+    explanation: "A <strong>Checkpoint Report</strong> is produced by the Team Manager and submitted to the Project Manager. It provides a progress update on a Work Package — the equivalent of a Highlight Report but at the team level."
+  },
+  {
+    topic: "Progress",
+    question: "In PRINCE2, which document records informal issues, actions, and observations that the Project Manager handles personally?",
+    answers: ["Issue Register", "Risk Register", "Daily Log", "Lessons Log"],
+    correct: 2,
+    hint: "Some things are too small or too informal to go into a formal register.",
+    explanation: "The <strong>Daily Log</strong> is the Project Manager's informal record of day-to-day events, minor issues, observations, and informal actions. It supplements the formal registers and is owned solely by the Project Manager."
+  },
+  {
+    topic: "Progress",
+    question: "What is the purpose of an End Stage Report?",
+    answers: ["To request permission to start the next stage", "To inform the Project Board of results achieved in the completed stage and forecast for the project", "To document all risks identified during the stage", "To produce the next Stage Plan"],
+    correct: 1,
+    hint: "It looks back at the stage just completed and forward to the rest of the project.",
+    explanation: "The <strong>End Stage Report</strong> is produced by the Project Manager at the end of each stage. It reports on performance during the stage, updates the Business Case, and revises the project forecast — enabling the Project Board to decide whether to authorise the next stage."
+  },
+  {
+    topic: "Progress",
+    question: "Which management level sets tolerances for the Project Manager in PRINCE2?",
+    answers: ["Corporate or programme management", "The Project Board", "The Senior User", "Team Manager"],
+    correct: 1,
+    hint: "Think about the direct line of accountability above the Project Manager.",
+    explanation: "The <strong>Project Board</strong> sets tolerances for the Project Manager (for each stage). In turn, the Project Manager sets tolerances for Team Managers within Work Packages. Corporate/programme management sets overall project tolerances for the Project Board."
+  },
+
+  // ── PROCESSES – STARTING UP (5 questions) ─────────────────────────────────
+  {
+    topic: "Starting Up a Project",
+    question: "What is the purpose of the 'Starting Up a Project' process?",
+    answers: ["To produce the Project Initiation Documentation", "To do the minimum necessary to decide whether the project is viable and worth initiating", "To establish the project management team and produce the Project Plan", "To approve the project and authorise the initiation stage"],
+    correct: 1,
+    hint: "This process is a quick sanity check — is this even worth starting?",
+    explanation: "<strong>Starting Up a Project</strong> is a pre-project process that asks: 'Is this project viable and worth initiating?' It produces the outline Business Case, appoints the project management team, and creates the Project Brief — enabling the Project Board to decide whether to authorise initiation."
+  },
+  {
+    topic: "Starting Up a Project",
+    question: "What is the Project Brief in PRINCE2?",
+    answers: ["A summary of the Business Case produced after initiation", "A document that provides the terms of reference for the project, used to decide whether to initiate", "The initial version of the Project Plan", "A brief for the Project Manager produced by corporate management"],
+    correct: 1,
+    hint: "It's the input to the decision to initiate — a concise 'what and why'.",
+    explanation: "The <strong>Project Brief</strong> is produced during Starting Up a Project and provides the basis for the decision to initiate. It contains the project definition, outline Business Case, project approach, customer quality expectations, and acceptance criteria."
+  },
+  {
+    topic: "Starting Up a Project",
+    question: "What triggers the 'Starting Up a Project' process?",
+    answers: ["The Project Board authorises initiation", "A Project Mandate from corporate or programme management", "The Project Manager receives a Work Package", "The Executive approves the Business Case"],
+    correct: 1,
+    hint: "Something has to kick the whole thing off — it comes from above the project.",
+    explanation: "Starting Up a Project is triggered by a <strong>Project Mandate</strong> from corporate or programme management. The mandate provides the initial direction and authority for the project to begin pre-project work."
+  },
+  {
+    topic: "Starting Up a Project",
+    question: "Which role is appointed first during 'Starting Up a Project'?",
+    answers: ["Project Manager", "Senior User", "Executive", "Team Manager"],
+    correct: 2,
+    hint: "This is the most senior role — they need to be in place before anyone else is selected.",
+    explanation: "The <strong>Executive</strong> is the first role appointed during Starting Up a Project. The Executive then works with corporate management to appoint the Project Manager, who helps identify the rest of the project management team."
+  },
+  {
+    topic: "Starting Up a Project",
+    question: "Which of the following is NOT produced during 'Starting Up a Project'?",
+    answers: ["Project Brief", "Outline Business Case", "Project Initiation Documentation", "Initiation Stage Plan"],
+    correct: 2,
+    hint: "The PID is much more detailed — it requires a full initiation stage.",
+    explanation: "The <strong>Project Initiation Documentation (PID)</strong> is NOT produced during Starting Up a Project — it is produced during Initiating a Project. Starting Up produces the Project Brief, outline Business Case, project approach, and Initiation Stage Plan."
+  },
+
+  // ── PROCESSES – INITIATING (5 questions) ──────────────────────────────────
+  {
+    topic: "Initiating a Project",
+    question: "During which PRINCE2 process is the Project Initiation Documentation (PID) created?",
+    answers: ["Starting Up a Project", "Directing a Project", "Initiating a Project", "Controlling a Stage"],
+    correct: 2,
+    hint: "The PID is the full baseline for the project — where does that get assembled?",
+    explanation: "<strong>Initiating a Project</strong> is where the PID is assembled. It establishes the project on a firm foundation and includes the project approach, Project Plan, Business Case, and all management approach documents."
+  },
+  {
+    topic: "Initiating a Project",
+    question: "What is the primary purpose of the 'Initiating a Project' process?",
+    answers: ["To quickly assess whether the project is worth running", "To establish a sound basis for the project so all parties understand the what, why, how, when, and by whom", "To produce the first Stage Plan for the delivery stage", "To obtain Project Board approval to start delivery work"],
+    correct: 1,
+    hint: "Think about establishing a firm foundation before real work begins.",
+    explanation: "<strong>Initiating a Project</strong> ensures the project is established on a sound basis. The PID produced during this process is the contract between the Project Manager and the Project Board — it defines all aspects of how the project will be managed."
+  },
+  {
+    topic: "Initiating a Project",
+    question: "Which management approach documents are created during 'Initiating a Project'?",
+    answers: ["Benefits Management Approach, Risk Management Approach, Quality Management Approach, Communication Management Approach", "Configuration Management Plan, Risk Log, Quality Plan, Stakeholder Map", "Project Brief, Risk Register, Issue Register, Quality Register", "Lessons Report, End Stage Report, Benefits Review Plan, Work Packages"],
+    correct: 0,
+    hint: "Each major PRINCE2 theme requires an approach document — these are all created at initiation.",
+    explanation: "During Initiating a Project, four management approach documents are created: <strong>Benefits Management Approach, Risk Management Approach, Quality Management Approach, and Communication Management Approach</strong>. Together with the Project Plan and Business Case, they form the PID."
+  },
+  {
+    topic: "Initiating a Project",
+    question: "What authorises the start of the 'Initiating a Project' process?",
+    answers: ["The Project Manager's decision to start planning", "The Project Board's decision to 'Authorise Initiation' via Directing a Project", "Corporate management signing the Business Case", "The completion of the first Stage Plan"],
+    correct: 1,
+    hint: "Someone has to give the green light to spend time and money on initiation.",
+    explanation: "Initiating a Project starts when the Project Board authorises initiation via the <strong>Directing a Project</strong> activity 'Authorise Initiation'. This follows their review of the Project Brief produced during Starting Up a Project."
+  },
+  {
+    topic: "Initiating a Project",
+    question: "The Project Initiation Documentation (PID) is best described as:",
+    answers: ["An informal summary of project aims for stakeholders", "The single definitive source of how the project is to be managed — the project contract", "A working document updated daily by the Project Manager", "A document produced only for large, complex projects"],
+    correct: 1,
+    hint: "The PID is the project's bible — everything is defined in it.",
+    explanation: "The <strong>PID</strong> is the definitive reference for how the project will be managed. It covers the Business Case, project approach, controls, strategies, and plans. It forms the baseline against which all progress and performance are measured."
+  },
+
+  // ── PROCESSES – DIRECTING (4 questions) ───────────────────────────────────
+  {
+    topic: "Directing a Project",
+    question: "Which process is used by the Project Board throughout the entire project?",
+    answers: ["Controlling a Stage", "Directing a Project", "Managing Product Delivery", "Starting Up a Project"],
+    correct: 1,
+    hint: "The Project Board doesn't manage day-to-day — they direct. What's the process called?",
+    explanation: "<strong>Directing a Project</strong> runs from project initiation to project close. The Project Board uses this process to make key decisions, provide overall direction, and delegate day-to-day management to the Project Manager."
+  },
+  {
+    topic: "Directing a Project",
+    question: "Which of the following is NOT a responsibility of the Project Board in 'Directing a Project'?",
+    answers: ["Authorising the initiation stage", "Authorising the project", "Producing the Checkpoint Report", "Giving ad hoc direction"],
+    correct: 2,
+    hint: "Checkpoint Reports belong to a different level of the management hierarchy.",
+    explanation: "The <strong>Checkpoint Report</strong> is produced by Team Managers for the Project Manager — not by or for the Project Board. Project Board responsibilities include authorising stages, giving ad hoc direction, and managing escalations."
+  },
+  {
+    topic: "Directing a Project",
+    question: "What is the Project Board's response when it receives an Exception Report?",
+    answers: ["Produce a new Highlight Report", "Issue an Exception Plan themselves", "Direct the Project Manager to produce an Exception Plan, or close the project", "Send the report to corporate management without action"],
+    correct: 2,
+    hint: "The Project Board makes the decision — the Project Manager does the planning.",
+    explanation: "When an Exception Report is received, the Project Board (via Directing a Project) can <strong>direct the Project Manager to produce an Exception Plan</strong>, trigger premature closure, or — in rare cases — accept the deviation. They decide; the PM acts."
+  },
+  {
+    topic: "Directing a Project",
+    question: "The 'Authorise the Project' activity in 'Directing a Project' involves the Project Board:",
+    answers: ["Approving only the Project Brief", "Approving the PID and authorising the first delivery stage", "Authorising the project and all future stages simultaneously", "Approving the Stage Plan for the current stage only"],
+    correct: 1,
+    hint: "After initiation, the Project Board approves the full plan and says 'go'.",
+    explanation: "In the 'Authorise the Project' activity, the Project Board reviews the PID and the next Stage Plan. If satisfied, they <strong>approve the PID and authorise the first delivery stage</strong>, formally committing the project to delivery."
+  },
+
+  // ── PROCESSES – CONTROLLING A STAGE (5 questions) ─────────────────────────
+  {
+    topic: "Controlling a Stage",
+    question: "Which PRINCE2 process covers the day-to-day management of a delivery stage?",
+    answers: ["Initiating a Project", "Directing a Project", "Controlling a Stage", "Managing a Stage Boundary"],
+    correct: 2,
+    hint: "Once a stage is authorised, someone needs to manage it daily.",
+    explanation: "<strong>Controlling a Stage</strong> is the process used by the Project Manager to assign Work Packages, monitor progress, manage issues and risks, report to the Project Board, and take corrective actions within a delivery stage."
+  },
+  {
+    topic: "Controlling a Stage",
+    question: "Which management product does the Project Manager use to authorise work for a Team Manager in 'Controlling a Stage'?",
+    answers: ["Stage Plan", "Highlight Report", "Work Package", "Checkpoint Report"],
+    correct: 2,
+    hint: "It's the formal handshake between the PM and the team.",
+    explanation: "A <strong>Work Package</strong> is the formal authorisation issued by the Project Manager to the Team Manager, defining the products to be produced, quality criteria, reporting requirements, and tolerances. It is the key interface between these two levels."
+  },
+  {
+    topic: "Controlling a Stage",
+    question: "Who produces Highlight Reports during 'Controlling a Stage'?",
+    answers: ["Team Manager", "Project Board", "Project Manager", "Project Assurance"],
+    correct: 2,
+    hint: "These go from the PM upward — so the PM must produce them.",
+    explanation: "The <strong>Project Manager</strong> produces Highlight Reports and sends them to the Project Board during Controlling a Stage. The frequency is agreed in the Stage Plan/Communication Management Approach."
+  },
+  {
+    topic: "Controlling a Stage",
+    question: "In PRINCE2, 'Controlling a Stage' includes all of the following EXCEPT:",
+    answers: ["Reviewing Work Package status", "Reporting highlights to the Project Board", "Producing the next Stage Plan", "Taking corrective action on issues"],
+    correct: 2,
+    hint: "Planning for the next stage happens somewhere else.",
+    explanation: "Producing the next Stage Plan is done during <strong>Managing a Stage Boundary</strong>, not Controlling a Stage. Controlling a Stage focuses on monitoring current progress, managing issues and risks, and reporting within the current stage."
+  },
+  {
+    topic: "Controlling a Stage",
+    question: "When the Project Manager forecasts that stage tolerances will be exceeded, what should they produce?",
+    answers: ["A Highlight Report with increased detail", "An Exception Report for the Project Board", "A revised Stage Plan submitted to the team", "A Change Request to extend the stage"],
+    correct: 1,
+    hint: "This is a formal escalation — not a routine progress report.",
+    explanation: "When tolerances are forecast to be exceeded, the Project Manager must raise an <strong>Exception Report</strong> to the Project Board. The Manage by Exception principle means the PM cannot continue without Board direction once tolerances are forecast to be breached."
+  },
+
+  // ── PROCESSES – MANAGING PRODUCT DELIVERY (4 questions) ───────────────────
+  {
+    topic: "Managing Product Delivery",
+    question: "Work Packages are authorised and received in which PRINCE2 process?",
+    answers: ["Initiating a Project", "Controlling a Stage", "Managing Product Delivery", "Managing a Stage Boundary"],
+    correct: 2,
+    hint: "This is the process where the Team Manager takes on the work.",
+    explanation: "<strong>Managing Product Delivery</strong> is the interface between the Project Manager and Team Manager(s). The Team Manager accepts Work Packages, ensures work is done to the required quality, and returns completed Work Packages."
+  },
+  {
+    topic: "Managing Product Delivery",
+    question: "Which role is primarily responsible for the 'Managing Product Delivery' process?",
+    answers: ["Project Manager", "Project Board", "Team Manager", "Senior Supplier"],
+    correct: 2,
+    hint: "This is where the actual building happens — at the team level.",
+    explanation: "The <strong>Team Manager</strong> (or team members if no Team Manager is appointed) is responsible for Managing Product Delivery. They accept Work Packages, plan, build, and quality-check products, then hand them back to the Project Manager."
+  },
+  {
+    topic: "Managing Product Delivery",
+    question: "The primary output of 'Managing Product Delivery' is:",
+    answers: ["A Highlight Report to the Project Board", "Completed products that have passed quality review, returned via the Work Package", "A revised Stage Plan for the Project Manager", "An updated Risk Register"],
+    correct: 1,
+    hint: "What does the team actually deliver back to the PM?",
+    explanation: "The primary output of Managing Product Delivery is <strong>completed products that have met their quality criteria</strong>, formally delivered back to the Project Manager via the completed Work Package. Quality records are updated in the Quality Register."
+  },
+  {
+    topic: "Managing Product Delivery",
+    question: "In 'Managing Product Delivery', Checkpoint Reports are submitted to whom?",
+    answers: ["Project Board", "Senior User", "Project Manager", "Corporate management"],
+    correct: 2,
+    hint: "These go upward — but not all the way to the top.",
+    explanation: "Checkpoint Reports are submitted by the Team Manager to the <strong>Project Manager</strong>. They provide progress updates on Work Packages and feed into the Project Manager's Highlight Reports to the Project Board."
+  },
+
+  // ── PROCESSES – MANAGING A STAGE BOUNDARY (5 questions) ───────────────────
+  {
+    topic: "Managing a Stage Boundary",
+    question: "An End Stage Assessment is a key activity in which PRINCE2 process?",
+    answers: ["Directing a Project", "Managing a Stage Boundary", "Controlling a Stage", "Closing a Project"],
+    correct: 1,
+    hint: "This process prepares for the transition between stages.",
+    explanation: "<strong>Managing a Stage Boundary</strong> is where the Project Manager provides the Project Board with information to review the current stage and approve the next. The Project Board's review of this is the End Stage Assessment."
+  },
+  {
+    topic: "Managing a Stage Boundary",
+    question: "What is the primary purpose of 'Managing a Stage Boundary'?",
+    answers: ["To produce the Project Initiation Documentation", "To enable the Project Board to decide whether to authorise the next stage based on updated information", "To close down the project and produce the End Project Report", "To issue Work Packages for the next stage"],
+    correct: 1,
+    hint: "It's the checkpoint before committing to more work and spending.",
+    explanation: "<strong>Managing a Stage Boundary</strong> ensures the Project Board has accurate information about current performance and future projections. They use this to decide whether the project remains justified and whether to authorise the next Stage Plan."
+  },
+  {
+    topic: "Managing a Stage Boundary",
+    question: "Which of the following is produced during 'Managing a Stage Boundary'?",
+    answers: ["Project Brief", "End Stage Report and next Stage Plan", "Project Closure Notification", "Work Package"],
+    correct: 1,
+    hint: "You need to look back at what happened AND forward at what comes next.",
+    explanation: "During Managing a Stage Boundary, the Project Manager produces the <strong>End Stage Report</strong> (summarising the current stage) and the next <strong>Stage Plan</strong> (detailing the upcoming stage) for the Project Board's approval."
+  },
+  {
+    topic: "Managing a Stage Boundary",
+    question: "An Exception Plan is produced as part of which PRINCE2 process?",
+    answers: ["Controlling a Stage", "Directing a Project", "Managing a Stage Boundary", "Closing a Project"],
+    correct: 2,
+    hint: "An Exception Plan replaces a Stage Plan — who produces Stage Plans?",
+    explanation: "An <strong>Exception Plan</strong> is produced during <strong>Managing a Stage Boundary</strong> when the Project Board has directed it following an Exception Report. It replaces the current Stage Plan and must be formally approved by the Project Board."
+  },
+  {
+    topic: "Managing a Stage Boundary",
+    question: "The Lessons Log is reviewed and updated during 'Managing a Stage Boundary'. Why?",
+    answers: ["To satisfy the Change theme requirements", "To capture lessons from the completed stage so they are not lost", "Because the Project Board requests a lessons update at every stage", "To transfer lessons directly to the Quality Register"],
+    correct: 1,
+    hint: "The Learn from Experience principle requires continuous lesson capture — not just at project end.",
+    explanation: "Reviewing and updating the Lessons Log at each stage boundary ensures that <strong>lessons from the completed stage are captured promptly</strong>, in line with the Learn from Experience principle. They feed into the Lessons Report at project close."
+  },
+
+  // ── PROCESSES – CLOSING A PROJECT (5 questions) ────────────────────────────
+  {
+    topic: "Closing a Project",
+    question: "What is the purpose of the 'Closing a Project' process?",
+    answers: ["To transfer products to operations and provide a controlled close to the project", "To summarise the benefits achieved by the project", "To produce the final Stage Plan", "To close the Risk Register and Issue Register"],
+    correct: 0,
+    hint: "Closing is about handing over and wrapping up — officially and in a controlled way.",
+    explanation: "<strong>Closing a Project</strong> ensures a controlled close: products are accepted and transferred to operational use, ongoing risks and issues are handed over, lessons are reported, and the project is formally decommissioned."
+  },
+  {
+    topic: "Closing a Project",
+    question: "Which report is produced by the Project Manager during 'Closing a Project' to summarise overall project performance?",
+    answers: ["End Stage Report", "Lessons Report", "End Project Report", "Closure Report"],
+    correct: 2,
+    hint: "There's a specific report just for the end of the entire project.",
+    explanation: "The <strong>End Project Report</strong> is produced during Closing a Project. It compares actual performance against the original and revised baseline (PID), covers benefits realised to date, and documents outstanding risks and issues for operational teams."
+  },
+  {
+    topic: "Closing a Project",
+    question: "Which document formally records that products have been accepted and transferred to the customer during 'Closing a Project'?",
+    answers: ["Product Sign-off Form", "Project Closure Notification", "Benefits Management Approach", "Follow-on Action Recommendations"],
+    correct: 1,
+    hint: "There must be a formal notification that the project is done and products are handed over.",
+    explanation: "The <strong>Project Closure Notification</strong> is issued to inform all stakeholders and supporting functions that the project has been closed. Acceptance of products is confirmed through the acceptance criteria defined in the Project Product Description."
+  },
+  {
+    topic: "Closing a Project",
+    question: "What are 'Follow-on Action Recommendations' in PRINCE2?",
+    answers: ["Instructions for the next project in the programme", "Outstanding risks, issues, and actions handed to those managing the product after project closure", "Recommendations for how to improve the PRINCE2 method", "A list of changes rejected during the project"],
+    correct: 1,
+    hint: "When the project ends, unresolved items don't just disappear.",
+    explanation: "<strong>Follow-on Action Recommendations</strong> document unresolved issues, outstanding risks, and suggested improvements that need to be addressed after the project closes. They are passed to the operational team or programme management."
+  },
+  {
+    topic: "Closing a Project",
+    question: "Can a PRINCE2 project be closed before all planned work is complete?",
+    answers: ["No — the project must always deliver all planned products", "Yes — if the Business Case is no longer valid, the project should be closed prematurely", "Only if the Project Manager approves early closure", "Only if all risks have been resolved"],
+    correct: 1,
+    hint: "Continued Business Justification — if the 'why' is gone, what should happen?",
+    explanation: "Yes. <strong>Premature closure</strong> can occur if the Business Case is no longer valid (benefits unachievable, costs too high, need has gone). The Project Board directs premature closure and the Closing a Project process is still followed to wrap up in a controlled manner."
+  },
+
+  // ── MANAGEMENT PRODUCTS (8 questions) ─────────────────────────────────────
+  {
+    topic: "Management Products",
+    question: "How many management products does PRINCE2 define?",
+    answers: ["16", "22", "26", "30"],
+    correct: 2,
+    hint: "PRINCE2 is comprehensive — there are quite a few, but not an unmanageable number.",
+    explanation: "PRINCE2 defines <strong>26 management products</strong>, divided into baselines (e.g., PID, Stage Plan), records (e.g., Risk Register, Issue Register), and reports (e.g., Highlight Report, End Project Report)."
+  },
+  {
+    topic: "Management Products",
+    question: "Management products in PRINCE2 are divided into which three categories?",
+    answers: ["Plans, Logs, and Reports", "Baselines, Records, and Reports", "Strategies, Registers, and Plans", "Documents, Templates, and Records"],
+    correct: 1,
+    hint: "Baselines are agreed and controlled; records are ongoing; reports are snapshots.",
+    explanation: "PRINCE2 management products are categorised as: <strong>Baselines</strong> (agreed and change-controlled, e.g., PID, Stage Plan), <strong>Records</strong> (dynamic and maintained throughout, e.g., Risk Register), and <strong>Reports</strong> (snapshots of status, e.g., Highlight Report)."
+  },
+  {
+    topic: "Management Products",
+    question: "Which management product is the single most important baseline document in a PRINCE2 project?",
+    answers: ["Project Brief", "Project Plan", "Project Initiation Documentation (PID)", "Benefits Management Approach"],
+    correct: 2,
+    hint: "Everything is defined here — it's the definitive reference for the project.",
+    explanation: "The <strong>Project Initiation Documentation (PID)</strong> is the most important baseline document. It defines the scope, approach, plans, controls, and management strategies for the whole project and forms the contract between the Project Manager and Project Board."
+  },
+  {
+    topic: "Management Products",
+    question: "Which type of PRINCE2 management product is the Risk Register?",
+    answers: ["Baseline", "Record", "Report", "Plan"],
+    correct: 1,
+    hint: "It's maintained and updated throughout — not a snapshot, and not fixed.",
+    explanation: "The Risk Register is a <strong>Record</strong>. Records are dynamic management products that are maintained and updated throughout the project. Other records include the Issue Register, Quality Register, Lessons Log, Configuration Item Records, and Daily Log."
+  },
+  {
+    topic: "Management Products",
+    question: "Which of the following is a PRINCE2 'report' management product?",
+    answers: ["Risk Register", "Stage Plan", "Highlight Report", "Work Package"],
+    correct: 2,
+    hint: "Reports are time-specific snapshots — they're produced at a point in time.",
+    explanation: "The <strong>Highlight Report</strong> is a Report management product — a periodic snapshot of stage progress. Other reports include the Checkpoint Report, End Stage Report, End Project Report, Exception Report, and Lessons Report."
+  },
+  {
+    topic: "Management Products",
+    question: "A Work Package in PRINCE2 is classified as which type of management product?",
+    answers: ["Record", "Report", "Baseline", "Plan"],
+    correct: 2,
+    hint: "Work Packages are agreed, change-controlled documents — like plans and the PID.",
+    explanation: "A <strong>Work Package</strong> is a Baseline management product. It is formally agreed between the Project Manager and Team Manager and acts as an agreement — defining what will be produced, to what quality, within what constraints."
+  },
+  {
+    topic: "Management Products",
+    question: "Which management product does the Project Board use to formally authorise the next stage?",
+    answers: ["Highlight Report", "Stage Plan", "Exception Report", "End Stage Report"],
+    correct: 1,
+    hint: "The Project Board reviews and approves something at each stage boundary.",
+    explanation: "The Project Board reviews and approves the <strong>Stage Plan</strong> (together with the End Stage Report) to formally authorise the next management stage. This happens via the Directing a Project 'Authorise a Stage or Exception Plan' activity."
+  },
+  {
+    topic: "Management Products",
+    question: "Which PRINCE2 management product provides the top-level description of what the project must deliver?",
+    answers: ["Product Description", "Project Plan", "Project Product Description", "Stage Plan"],
+    correct: 2,
+    hint: "Not individual products — the overall output of the entire project.",
+    explanation: "The <strong>Project Product Description</strong> describes the overall project output at a high level — its purpose, composition, quality expectations, and acceptance criteria. It is distinct from individual Product Descriptions, which describe specific products."
+  },
+
+  // ── ROLES & RESPONSIBILITIES (6 questions) ────────────────────────────────
+  {
+    topic: "Roles & Responsibilities",
+    question: "Which PRINCE2 role is responsible for day-to-day management of the project on behalf of the Project Board?",
+    answers: ["Executive", "Senior User", "Project Manager", "Team Manager"],
+    correct: 2,
+    hint: "This role is the key intermediary between the Project Board and the delivery teams.",
+    explanation: "The <strong>Project Manager</strong> has day-to-day responsibility for running the project within the constraints set by the Project Board. They manage the team, monitor progress, handle issues, and report upward to the Board."
+  },
+  {
+    topic: "Roles & Responsibilities",
+    question: "Which role in PRINCE2 is NOT part of the Project Board?",
+    answers: ["Executive", "Senior Supplier", "Project Manager", "Senior User"],
+    correct: 2,
+    hint: "The Project Board is made up of the three key stakeholder interests — not the person doing the day-to-day management.",
+    explanation: "The <strong>Project Manager</strong> is not a Project Board member. The Project Board consists of the Executive, Senior User(s), and Senior Supplier(s). The Project Manager attends Board meetings to report and receive direction but is not a member."
+  },
+  {
+    topic: "Roles & Responsibilities",
+    question: "What is Project Support in PRINCE2?",
+    answers: ["A mandatory role that must be filled on every project", "An optional function providing administrative and specialist support to the Project Manager", "A group that provides assurance to the Project Board", "The team of people directly delivering the project's products"],
+    correct: 1,
+    hint: "Think admin, tools, and configuration management — helpful but not always formally needed.",
+    explanation: "<strong>Project Support</strong> is an optional supporting role that provides administrative assistance to the Project Manager — tools, templates, configuration management, document control, and scheduling support. It can be provided by a Project Support Office."
+  },
+  {
+    topic: "Roles & Responsibilities",
+    question: "Project Assurance is the responsibility of the Project Board. It CANNOT be delegated to whom?",
+    answers: ["An external auditor", "A Project Assurance role holder", "The Project Manager", "The Senior User's appointed representative"],
+    correct: 2,
+    hint: "There's a fundamental conflict of interest here.",
+    explanation: "Project Assurance cannot be delegated to the <strong>Project Manager</strong> because the PM cannot assure their own work. Project Assurance checks that the project is being run correctly on behalf of the Project Board — it must remain independent of the PM."
+  },
+  {
+    topic: "Roles & Responsibilities",
+    question: "Which role in PRINCE2 is responsible for ensuring the project produces the right products in the right way?",
+    answers: ["Project Assurance", "Project Support", "Change Authority", "Senior Supplier"],
+    correct: 0,
+    hint: "Who checks that the project is being run properly on behalf of the Project Board?",
+    explanation: "<strong>Project Assurance</strong> ensures the project is being conducted correctly from each stakeholder's perspective: business (is the Business Case still valid?), user (will the products meet requirements?), and supplier (are products being built correctly?)."
+  },
+  {
+    topic: "Roles & Responsibilities",
+    question: "What is the minimum required composition of a PRINCE2 Project Board?",
+    answers: ["Executive and Project Manager", "Executive and Senior User", "Executive, Senior User, and Senior Supplier", "Executive only"],
+    correct: 2,
+    hint: "All three primary stakeholder interests must be represented.",
+    explanation: "A PRINCE2 Project Board must have at minimum an <strong>Executive, a Senior User, and a Senior Supplier</strong> — representing business, user, and supplier interests respectively. One person could theoretically hold both the Senior User and Senior Supplier roles if there is no conflict of interest."
+  },
+
+  // ── GENERAL & EXAM-STYLE (6 questions) ────────────────────────────────────
+  {
+    topic: "General",
+    question: "PRINCE2 stands for:",
+    answers: ["Projects in Controlled Environments", "Projects in Competitive Enterprises 2", "Programme Risk IN Controlled Environments", "Project Review IN Corporate Environments"],
+    correct: 0,
+    hint: "The name reflects the structured, controlled nature of the method.",
+    explanation: "<strong>PRINCE2 stands for PRojects IN Controlled Environments</strong>. The '2' refers to the second version of the method, which evolved from PRINCE (used in UK government IT projects in the 1980s) into a generic, best-practice standard."
+  },
+  {
+    topic: "General",
+    question: "Which organisation owns and publishes the PRINCE2 methodology?",
+    answers: ["PMI (Project Management Institute)", "APM (Association for Project Management)", "PeopleCert / Axelos", "ISO (International Organisation for Standardisation)"],
+    correct: 2,
+    hint: "PRINCE2 was originally a UK government standard, now managed commercially.",
+    explanation: "<strong>PeopleCert</strong> (which acquired Axelos) owns and manages the PRINCE2 certification scheme and publishes the official guidance. PRINCE2 was originally developed by the UK government's CCTA and later managed by OGC and then Axelos."
+  },
+  {
+    topic: "General",
+    question: "What is the PRINCE2 Foundation exam primarily designed to test?",
+    answers: ["Ability to practise and tailor PRINCE2 on a real project", "Knowledge and understanding of PRINCE2 principles, themes, processes, and terminology", "Ability to coach others in the use of PRINCE2", "Advanced project scheduling and risk management skills"],
+    correct: 1,
+    hint: "Foundation is about knowing — Practitioner is about applying.",
+    explanation: "The <strong>PRINCE2 Foundation</strong> exam tests <strong>knowledge and understanding</strong> of the method — its principles, themes, processes, terminology, and management products. Practitioners go on to the PRINCE2 Practitioner exam, which tests the ability to apply and tailor the method."
+  },
+  {
+    topic: "General",
+    question: "PRINCE2 defines a project as:",
+    answers: ["Any piece of work with a budget and schedule", "A temporary organisation created to deliver one or more business products", "An ongoing business operation with defined roles", "A series of sprints delivering incremental value"],
+    correct: 1,
+    hint: "Projects are temporary by definition — they're not like ongoing business operations.",
+    explanation: "PRINCE2 defines a project as a <strong>temporary organisation created for the purpose of delivering one or more business products according to an agreed Business Case</strong>. 'Temporary' and 'business product' are key — projects have a defined end point."
+  },
+  {
+    topic: "General",
+    question: "Which of the following is NOT one of the four integrated elements of PRINCE2?",
+    answers: ["Principles", "Themes", "Techniques", "Processes"],
+    correct: 2,
+    hint: "PRINCE2 has three structural elements — plus one that links it all together.",
+    explanation: "PRINCE2's four integrated elements are <strong>Principles, Themes, Processes, and the Project Environment</strong> (tailoring). 'Techniques' is not one of the four — though PRINCE2 does include some recommended techniques (like product-based planning) within its themes."
+  },
+  {
+    topic: "General",
+    question: "A programme in PRINCE2 terminology is best described as:",
+    answers: ["A very large project with many team managers", "A portfolio of unrelated projects", "A temporary, flexible organisation to coordinate a group of related projects", "A collection of business-as-usual activities"],
+    correct: 2,
+    hint: "A programme ties related projects together toward a common goal.",
+    explanation: "In the PRINCE2 context, a <strong>programme</strong> is a temporary, flexible organisation created to coordinate related projects and activities that together deliver outcomes and benefits aligned to strategic objectives. PRINCE2 projects may exist within a programme context."
+  }
+];
+
+const PRIZES = [
+  { val: "Aware", milestone: false },
+  { val: "Aware", milestone: false },
+  { val: "Aware+", milestone: true },
+  { val: "Practitioner", milestone: false },
+  { val: "Practitioner", milestone: false },
+  { val: "Confident", milestone: true },
+  { val: "Confident", milestone: false },
+  { val: "Advanced", milestone: false },
+  { val: "Advanced+", milestone: true },
+  { val: "Expert", milestone: false },
+  { val: "Expert", milestone: false },
+  { val: "Master", milestone: true },
+  { val: "Senior", milestone: false },
+  { val: "Senior+", milestone: false },
+  { val: "CERTIFIED!", milestone: true },
+];
+
+let state = {
+  current: 0,
+  score: 0,
+  answered: false,
+  lifelines: { fifty: true, audience: true, hint: true },
+  eliminated: [],
+  questions: []
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  // Stratified shuffle: ensure broad topic coverage in each 15-question round
+  const groups = {};
+  QUESTIONS.forEach(q => {
+    if (!groups[q.topic]) groups[q.topic] = [];
+    groups[q.topic].push(q);
+  });
+  // Shuffle within each topic group
+  Object.keys(groups).forEach(k => { groups[k] = shuffle(groups[k]); });
+
+  // Pick questions round-robin across topics until we have 15
+  const topicKeys = shuffle(Object.keys(groups));
+  const selected = [];
+  let round = 0;
+  while (selected.length < 15) {
+    for (let i = 0; i < topicKeys.length && selected.length < 15; i++) {
+      const key = topicKeys[i];
+      if (groups[key][round]) selected.push(groups[key][round]);
+    }
+    round++;
+  }
+
+  state = {
+    current: 0,
+    score: 0,
+    answered: false,
+    lifelines: { fifty: true, audience: true, hint: true },
+    eliminated: [],
+    questions: shuffle(selected)
+  };
+  buildLadder();
+  showScreen('screen-game');
+  renderQuestion();
+}
+
+function showIntro() { showScreen('screen-intro'); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function buildLadder() {
+  const list = document.getElementById('ladder-list');
+  list.innerHTML = '';
+  for (let i = 14; i >= 0; i--) {
+    const item = document.createElement('div');
+    item.className = 'ladder-item' + (PRIZES[i].milestone ? ' milestone' : '');
+    item.id = `ladder-${i}`;
+    item.innerHTML = `<span class="q-num">Q${i+1}</span><span class="prize-val">${PRIZES[i].val}</span>`;
+    list.appendChild(item);
+  }
+  updateLadder();
+}
+
+function updateLadder() {
+  for (let i = 0; i < 15; i++) {
+    const el = document.getElementById(`ladder-${i}`);
+    if (!el) continue;
+    el.classList.remove('active', 'passed');
+    if (i === state.current) el.classList.add('active');
+    else if (i < state.current) el.classList.add('passed');
+  }
+}
+
+function renderQuestion() {
+  const q = state.questions[state.current];
+  state.answered = false;
+  state.eliminated = [];
+
+  document.getElementById('q-counter').textContent = `Question ${state.current + 1} of 15`;
+  document.getElementById('q-topic').textContent = q.topic;
+  document.getElementById('question-text').textContent = q.question;
+
+  document.getElementById('explanation-box').classList.remove('visible');
+  document.getElementById('explanation-box').innerHTML = '';
+  document.getElementById('next-btn').classList.remove('visible');
+
+  // Lifeline buttons
+  document.getElementById('ll-fifty').disabled = !state.lifelines.fifty;
+  document.getElementById('ll-audience').disabled = !state.lifelines.audience;
+  document.getElementById('ll-hint').disabled = !state.lifelines.hint;
+
+  // Answers
+  const grid = document.getElementById('answers-grid');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.id = `ans-${i}`;
+    btn.innerHTML = `<span class="answer-letter">${letters[i]}</span><span>${ans}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  updateLadder();
+}
+
+function selectAnswer(idx) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const q = state.questions[state.current];
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+  document.getElementById('ll-fifty').disabled = true;
+  document.getElementById('ll-audience').disabled = true;
+  document.getElementById('ll-hint').disabled = true;
+
+  const chosen = document.getElementById(`ans-${idx}`);
+  const correct = document.getElementById(`ans-${q.correct}`);
+
+  setTimeout(() => {
+    if (idx === q.correct) {
+      chosen.classList.add('correct');
+      state.score++;
+    } else {
+      chosen.classList.add('wrong');
+      correct.classList.add('correct');
+    }
+
+    // Show explanation
+    const expBox = document.getElementById('explanation-box');
+    expBox.innerHTML = q.explanation;
+    expBox.classList.add('visible');
+
+    if (idx === q.correct) {
+      if (state.current === 14) {
+        setTimeout(showResult, 1600);
+      } else {
+        document.getElementById('next-btn').classList.add('visible');
+        state.current++;
+        updateLadder();
+      }
+    } else {
+      setTimeout(showResult, 2200);
+    }
+  }, 600);
+}
+
+function nextQuestion() {
+  renderQuestion();
+}
+
+function useFiftyFifty() {
+  if (!state.lifelines.fifty || state.answered) return;
+  state.lifelines.fifty = false;
+  document.getElementById('ll-fifty').disabled = true;
+
+  const q = state.questions[state.current];
+  const wrong = [0, 1, 2, 3].filter(i => i !== q.correct);
+  const toElim = shuffle(wrong).slice(0, 2);
+  toElim.forEach(i => {
+    const btn = document.getElementById(`ans-${i}`);
+    btn.classList.add('eliminated');
+    btn.disabled = true;
+  });
+}
+
+function useAudience() {
+  if (!state.lifelines.audience || state.answered) return;
+  state.lifelines.audience = false;
+  document.getElementById('ll-audience').disabled = true;
+
+  const q = state.questions[state.current];
+  // Generate plausible-looking audience votes biased toward correct answer
+  const correctPct = 45 + Math.floor(Math.random() * 30); // 45-74%
+  const remaining = 100 - correctPct;
+  let others = [0, 1, 2, 3].filter(i => i !== q.correct);
+  const pcts = [0, 0, 0, 0];
+  pcts[q.correct] = correctPct;
+
+  // Distribute remaining
+  let r = remaining;
+  others.forEach((o, i) => {
+    if (i === others.length - 1) { pcts[o] = r; }
+    else { const v = Math.floor(Math.random() * (r / 2)); pcts[o] = v; r -= v; }
+  });
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const bars = document.getElementById('audience-bars');
+  bars.innerHTML = '';
+  pcts.forEach((pct, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'bar-wrap';
+    wrap.innerHTML = `
+      <div class="bar-label">${letters[i]}</div>
+      <div class="bar" id="abar-${i}" style="height:0px"></div>
+      <div class="bar-pct">${pct}%</div>`;
+    bars.appendChild(wrap);
+  });
+
+  document.getElementById('audience-overlay').classList.add('show');
+
+  setTimeout(() => {
+    pcts.forEach((pct, i) => {
+      document.getElementById(`abar-${i}`).style.height = `${Math.max(pct, 2)}px`;
+    });
+  }, 100);
+}
+
+function closeAudience() {
+  document.getElementById('audience-overlay').classList.remove('show');
+}
+
+function useHint() {
+  if (!state.lifelines.hint || state.answered) return;
+  state.lifelines.hint = false;
+  document.getElementById('ll-hint').disabled = true;
+
+  const q = state.questions[state.current];
+  const hintText = q.hint || `Think about the PRINCE2 principle or theme most closely associated with ${q.topic}.`;
+  const expBox = document.getElementById('explanation-box');
+  expBox.innerHTML = `<strong>💡 Hint:</strong> ${hintText}`;
+  expBox.classList.add('visible');
+}
+
+// ============================================================
+//  WHOP ACCESS GATE
+//  Calls a Netlify serverless function — keeps API key hidden.
+//
+//  ── TWO THINGS TO SET BEFORE GOING LIVE ──────────────────
+//  1. Set WHOP_CHECKOUT_URL below to your Whop product URL
+//  2. In Netlify dashboard → Site → Environment variables, add:
+//       WHOP_API_KEY     = your Whop read-only API key
+//       WHOP_PRODUCT_ID  = your product ID (e.g. prod_xxxxxxxx)
+// ============================================================
+
+const WHOP_CHECKOUT_URL = 'YOUR_WHOP_CHECKOUT_URL_HERE';
+const SESSION_KEY       = 'p2_quiz_access_v1';
+
+// ── Initialise gate on page load ──────────────────────────
+function initGate() {
+  // Set purchase link
+  const link = document.getElementById('gate-purchase-link');
+  if (WHOP_CHECKOUT_URL !== 'YOUR_WHOP_CHECKOUT_URL_HERE') {
+    link.href = WHOP_CHECKOUT_URL;
+  }
+
+  // If already verified this session, skip straight to quiz
+  if (sessionStorage.getItem(SESSION_KEY) === 'granted') {
+    grantAccess(false);
+    return;
+  }
+}
+
+// ── Main verification — calls Netlify function ────────────
+async function checkAccess() {
+  const emailInput = document.getElementById('gate-email');
+  const btn        = document.getElementById('gate-btn');
+  const errorEl    = document.getElementById('gate-error');
+  const successEl  = document.getElementById('gate-success');
+
+  const email = emailInput.value.trim().toLowerCase();
+
+  if (!email || !email.includes('@')) {
+    showGateError('Please enter a valid email address.');
+    emailInput.focus();
+    return;
+  }
+
+  // Reset UI state
+  errorEl.classList.remove('show');
+  successEl.classList.remove('show');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="gate-spinner"></span>Checking…';
+
+  try {
+    const response = await fetch(
+      `/.netlify/functions/verify-access?email=${encodeURIComponent(email)}`
+    );
+
+    // If the function itself errored (5xx)
+    if (response.status >= 500) {
+      showGateError('Verification service error. Please try again shortly.');
+      resetBtn();
+      return;
+    }
+
+    const data = await response.json();
+
+    if (data.error === 'api_auth') {
+      showGateError('Server configuration error — please contact support.');
+      resetBtn();
+      return;
+    }
+
+    if (data.granted) {
+      // ✅ Active Whop membership confirmed
+      successEl.textContent = '✅ Purchase verified! Loading your quiz…';
+      successEl.classList.add('show');
+      sessionStorage.setItem(SESSION_KEY, 'granted');
+      await sleep(900);
+      grantAccess(true);
+    } else {
+      // ❌ No membership found for this email
+      showGateError(
+        'No active purchase found for <strong>' + escapeHtml(email) + '</strong>. ' +
+        'Make sure you\'re using the email you purchased with on Whop, ' +
+        'or get access using the button below.'
+      );
+      resetBtn();
+    }
+
+  } catch (err) {
+    console.error('Gate fetch error:', err);
+    showGateError('Could not reach the verification server. Check your connection and try again.');
+    resetBtn();
+  }
+}
+
+// ── Grant access — hide the gate overlay ─────────────────
+function grantAccess(animate) {
+  const gate = document.getElementById('gate-screen');
+  if (animate) {
+    gate.style.transition = 'opacity 0.5s ease';
+    gate.style.opacity = '0';
+    setTimeout(() => gate.classList.add('hidden'), 500);
+  } else {
+    gate.classList.add('hidden');
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function showGateError(html) {
+  const el = document.getElementById('gate-error');
+  el.innerHTML = html;
+  el.classList.add('show');
+}
+
+function resetBtn() {
+  const btn = document.getElementById('gate-btn');
+  btn.disabled = false;
+  btn.textContent = 'Verify Access';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+window.addEventListener('DOMContentLoaded', initGate);
+
+function showResult() {
+  showScreen('screen-result');
+  const total = 15;
+  const s = state.score;
+  const badge = document.getElementById('result-badge');
+  const title = document.getElementById('result-title');
+  const subtitle = document.getElementById('result-subtitle');
+  const advice = document.getElementById('result-advice');
+
+  document.getElementById('score-display').textContent = `${s}/${total}`;
+
+  if (s === total) {
+    badge.className = 'result-badge win'; badge.textContent = '🏆';
+    title.textContent = 'Exam Ready!';
+    subtitle.textContent = 'PRINCE2 Foundation Champion';
+    advice.innerHTML = 'Perfect score! You have a strong grasp of all PRINCE2 principles, themes, and processes. <strong>Book your Foundation exam — you\'re ready.</strong>';
+  } else if (s >= 12) {
+    badge.className = 'result-badge win'; badge.textContent = '🎓';
+    title.textContent = 'Almost There!';
+    subtitle.textContent = 'Strong Foundation Knowledge';
+    advice.innerHTML = `<strong>${s} out of 15</strong> is impressive. Review the questions you missed, focus on the processes and themes where you stumbled, and you\'ll be exam-ready in no time.`;
+  } else if (s >= 8) {
+    badge.className = 'result-badge win'; badge.textContent = '📚';
+    title.textContent = 'Good Progress';
+    subtitle.textContent = 'Keep Studying';
+    advice.innerHTML = `<strong>${s} out of 15</strong> shows solid foundations. Focus on the 7 principles and the 7 themes in depth — especially Business Case, Organisation, and Quality. Keep practising!`;
+  } else {
+    badge.className = 'result-badge lose'; badge.textContent = '📖';
+    title.textContent = 'More Study Needed';
+    subtitle.textContent = 'Don\'t Give Up!';
+    advice.innerHTML = `<strong>${s} out of 15</strong> — Everyone starts somewhere. Re-read the PRINCE2 Foundation manual, particularly the chapters on principles and processes. The explanations in this quiz are a great starting point.`;
+  }
+}
+</script>
+</body>
+</html>
