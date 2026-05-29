@@ -2,8 +2,8 @@
 // ─────────────────────────────────────────────────────────────
 // Netlify env vars required:
 //   WHOP_API_KEY     → Company API key
-//   WHOP_PRODUCT_ID  → prod_GNtlnh2luyD90
-//   WHOP_COMPANY_ID  → biz_ZcQ2AI3jxVWbvE
+//   WHOP_PRODUCT_ID  
+//   WHOP_COMPANY_ID  
 // ─────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
