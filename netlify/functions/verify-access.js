@@ -1,11 +1,9 @@
 // netlify/functions/verify-access.js
 // ─────────────────────────────────────────────────────────────
-// Verifies a Whop purchase by checking the company's member list.
-// Uses the /v1/company/members endpoint — works with a Product ID.
-//
 // Netlify env vars required:
 //   WHOP_API_KEY     → Company API key (member:basic:read + member:email:read)
 //   WHOP_PRODUCT_ID  → Your product ID (prod_xxxxxxxx)
+//   WHOP_COMPANY_ID  → Your company ID (biz_xxxxxxxx) — found in Whop Settings
 // ─────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
@@ -17,13 +15,14 @@ exports.handler = async (event) => {
   const email     = event.queryStringParameters?.email?.trim().toLowerCase();
   const apiKey    = process.env.WHOP_API_KEY;
   const productId = process.env.WHOP_PRODUCT_ID;
+  const companyId = process.env.WHOP_COMPANY_ID;
 
   if (!email || !email.includes('@')) {
     return { statusCode: 400, headers: corsHeaders(), body: JSON.stringify({ error: 'Valid email required' }) };
   }
 
-  if (!apiKey || !productId) {
-    console.error('Missing env vars');
+  if (!apiKey || !productId || !companyId) {
+    console.error('Missing env vars — need WHOP_API_KEY, WHOP_PRODUCT_ID, WHOP_COMPANY_ID');
     return { statusCode: 500, headers: corsHeaders(), body: JSON.stringify({ error: 'Server not configured.' }) };
   }
 
@@ -33,12 +32,13 @@ exports.handler = async (event) => {
   };
 
   try {
-    console.log(`Checking membership for: ${email} on product: ${productId}`);
+    console.log(`Checking membership for: ${email}`);
+    console.log(`Product ID: ${productId} | Company ID: ${companyId}`);
 
-    // Company-scoped endpoint — works with a Product ID (not an App ID)
     const url =
-      `https://api.whop.com/api/v1/company/members` +
-      `?query=${encodeURIComponent(email)}` +
+      `https://api.whop.com/api/v1/members` +
+      `?company_id=${encodeURIComponent(companyId)}` +
+      `&query=${encodeURIComponent(email)}` +
       `&product_ids[]=${encodeURIComponent(productId)}` +
       `&statuses[]=joined` +
       `&first=5`;
@@ -46,12 +46,11 @@ exports.handler = async (event) => {
     const response = await fetch(url, { headers: reqHeaders });
     const data = await response.json();
 
-    console.log(`Status: ${response.status}`);
-    console.log(`Members returned: ${data.data?.length ?? 'no data key'}`);
+    console.log(`Whop API status: ${response.status}`);
     console.log(`Raw response: ${JSON.stringify(data)}`);
 
     if (response.status === 401) {
-      console.error('API key rejected — check key is a Company API key');
+      console.error('API key rejected — must be a Company API key');
       return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ granted: false, error: 'api_auth' }) };
     }
 
@@ -65,11 +64,12 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ granted: false, error: 'api_error' }) };
     }
 
-    // Exact email match to prevent false positives on name/username matches
     const members = Array.isArray(data.data) ? data.data : [];
-    const granted = members.some(m => m.user?.email?.toLowerCase() === email);
+    console.log(`Members returned: ${members.length}`);
 
-    console.log(`Email match found: ${granted}`);
+    // Exact email match guards against name/username false positives
+    const granted = members.some(m => m.user?.email?.toLowerCase() === email);
+    console.log(`Access granted: ${granted}`);
 
     return {
       statusCode: 200,
