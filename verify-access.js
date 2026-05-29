@@ -7,7 +7,7 @@
 // Set these in: Netlify dashboard → Site → Environment variables
 //   WHOP_API_KEY      → your Whop read-only API key
 //   WHOP_PRODUCT_ID   → your Whop product ID (e.g. prod_xxxxxxxx)
-// ─────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────── 
 
 exports.handler = async (event) => {
 
