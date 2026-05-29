@@ -1,0 +1,24 @@
+{
+  "name": "PRINCE2 Foundation Quiz",
+  "short_name": "P2 Quiz",
+  "description": "Who Wants to Be PRINCE2 Certified? — 128-question Foundation exam prep",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050a1a",
+  "theme_color": "#050a1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
