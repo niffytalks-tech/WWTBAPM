@@ -1,75 +1,85 @@
 // netlify/functions/verify-access.js
 // ─────────────────────────────────────────────────────────────
-// Verifies a Whop purchase by checking the company's member list.
-// Uses the /v1/company/members endpoint — works with a Product ID.
+// This function runs on Netlify's servers (not in the browser),
+// so CORS is not an issue and the API key stays hidden in
+// Netlify environment variables — never exposed in your HTML.
 //
-// Netlify env vars required:
-//   WHOP_API_KEY     → Company API key (member:basic:read + member:email:read)
-//   WHOP_PRODUCT_ID  → Your product ID (prod_xxxxxxxx)
+// Set these in: Netlify dashboard → Site → Environment variables
+//   WHOP_API_KEY      → your Whop read-only API key
+//   WHOP_PRODUCT_ID   → your Whop product ID (e.g. prod_xxxxxxxx)
 // ─────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
 
+  // Only allow GET requests
   if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, headers: corsHeaders(), body: JSON.stringify({ error: 'Method not allowed' }) };
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
   }
 
-  const email     = event.queryStringParameters?.email?.trim().toLowerCase();
-  const apiKey    = process.env.WHOP_API_KEY;
-  const productId = process.env.WHOP_PRODUCT_ID;
+  const email = event.queryStringParameters?.email?.trim().toLowerCase();
 
+  // Validate email was provided
   if (!email || !email.includes('@')) {
-    return { statusCode: 400, headers: corsHeaders(), body: JSON.stringify({ error: 'Valid email required' }) };
+    return {
+      statusCode: 400,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Valid email required' })
+    };
   }
+
+  // Check env vars are configured
+  const apiKey     = process.env.WHOP_API_KEY;
+  const productId  = process.env.WHOP_PRODUCT_ID;
 
   if (!apiKey || !productId) {
-    console.error('Missing env vars');
-    return { statusCode: 500, headers: corsHeaders(), body: JSON.stringify({ error: 'Server not configured.' }) };
+    console.error('Missing WHOP_API_KEY or WHOP_PRODUCT_ID environment variables');
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Server not configured. Contact support.' })
+    };
   }
 
-  const reqHeaders = {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json'
-  };
-
   try {
-    console.log(`Checking membership for: ${email} on product: ${productId}`);
-
-    // Company-scoped endpoint — works with a Product ID (not an App ID)
     const url =
-      `https://api.whop.com/api/v1/company/members` +
-      `?query=${encodeURIComponent(email)}` +
-      `&product_ids[]=${encodeURIComponent(productId)}` +
-      `&statuses[]=joined` +
-      `&first=5`;
+      `https://api.whop.com/api/v2/memberships` +
+      `?email=${encodeURIComponent(email)}` +
+      `&product_id=${encodeURIComponent(productId)}` +
+      `&status=active`;
 
-    const response = await fetch(url, { headers: reqHeaders });
-    const data = await response.json();
+    const whopResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-    console.log(`Status: ${response.status}`);
-    console.log(`Members returned: ${data.data?.length ?? 'no data key'}`);
-    console.log(`Raw response: ${JSON.stringify(data)}`);
-
-    if (response.status === 401) {
-      console.error('API key rejected — check key is a Company API key');
-      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ granted: false, error: 'api_auth' }) };
+    if (whopResponse.status === 401) {
+      console.error('Whop API key rejected (401)');
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({ granted: false, error: 'api_auth' })
+      };
     }
 
-    if (response.status === 403) {
-      console.error('Missing permissions — needs member:basic:read and member:email:read');
-      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ granted: false, error: 'api_permissions' }) };
+    if (!whopResponse.ok) {
+      console.error(`Whop API error: ${whopResponse.status}`);
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({ granted: false, error: 'api_error', status: whopResponse.status })
+      };
     }
 
-    if (!response.ok) {
-      console.error(`API error ${response.status}: ${JSON.stringify(data)}`);
-      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ granted: false, error: 'api_error' }) };
-    }
+    const data = await whopResponse.json();
 
-    // Exact email match to prevent false positives on name/username matches
-    const members = Array.isArray(data.data) ? data.data : [];
-    const granted = members.some(m => m.user?.email?.toLowerCase() === email);
-
-    console.log(`Email match found: ${granted}`);
+    // Grant access if at least one active membership found for this email + product
+    const granted = Array.isArray(data.data) && data.data.length > 0;
 
     return {
       statusCode: 200,
@@ -78,8 +88,12 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
-    console.error('verify-access error:', err);
-    return { statusCode: 500, headers: corsHeaders(), body: JSON.stringify({ error: 'Unexpected server error' }) };
+    console.error('verify-access function error:', err);
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Unexpected server error' })
+    };
   }
 };
 
