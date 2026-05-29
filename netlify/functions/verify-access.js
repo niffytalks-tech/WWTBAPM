@@ -1,27 +1,25 @@
 // netlify/functions/verify-access.js
 // ─────────────────────────────────────────────────────────────
-// This function runs on Netlify's servers (not in the browser),
-// so CORS is not an issue and the API key stays hidden in
-// Netlify environment variables — never exposed in your HTML.
+// Proxies the Whop API call server-side — keeps API key hidden.
 //
-// Set these in: Netlify dashboard → Site → Environment variables
-//   WHOP_API_KEY      → your Whop read-only API key
-//   WHOP_PRODUCT_ID   → your Whop product ID (e.g. prod_xxxxxxxx)
+// Set these in Netlify → Site → Environment variables:
+//   WHOP_API_KEY      → Company API key (needs member:basic:read
+//                       and member:email:read permissions)
+//   WHOP_PRODUCT_ID   → your product ID (e.g. prod_xxxxxxxx)
 // ─────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
 
-  // Only allow GET requests
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
+      headers: corsHeaders(),
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
 
   const email = event.queryStringParameters?.email?.trim().toLowerCase();
 
-  // Validate email was provided
   if (!email || !email.includes('@')) {
     return {
       statusCode: 400,
@@ -30,12 +28,11 @@ exports.handler = async (event) => {
     };
   }
 
-  // Check env vars are configured
-  const apiKey     = process.env.WHOP_API_KEY;
-  const productId  = process.env.WHOP_PRODUCT_ID;
+  const apiKey    = process.env.WHOP_API_KEY;
+  const productId = process.env.WHOP_PRODUCT_ID;
 
   if (!apiKey || !productId) {
-    console.error('Missing WHOP_API_KEY or WHOP_PRODUCT_ID environment variables');
+    console.error('Missing WHOP_API_KEY or WHOP_PRODUCT_ID env vars');
     return {
       statusCode: 500,
       headers: corsHeaders(),
@@ -44,13 +41,18 @@ exports.handler = async (event) => {
   }
 
   try {
-    const url =
-      `https://api.whop.com/api/v2/memberships` +
-      `?email=${encodeURIComponent(email)}` +
-      `&product_id=${encodeURIComponent(productId)}` +
-      `&status=active`;
+    // Step 1 — search members by email using the current v1 API
+    // 'query' searches name, username, and email (requires member:email:read)
+    const searchUrl =
+      `https://api.whop.com/api/v1/members` +
+      `?query=${encodeURIComponent(email)}` +
+      `&product_ids[]=${encodeURIComponent(productId)}` +
+      `&statuses[]=joined` +
+      `&first=5`;
 
-    const whopResponse = await fetch(url, {
+    console.log(`Checking membership for: ${email}`);
+
+    const whopResponse = await fetch(searchUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -58,8 +60,11 @@ exports.handler = async (event) => {
       }
     });
 
+    // Log the raw status for debugging
+    console.log(`Whop API status: ${whopResponse.status}`);
+
     if (whopResponse.status === 401) {
-      console.error('Whop API key rejected (401)');
+      console.error('Whop API key rejected (401) — check key type and permissions');
       return {
         statusCode: 200,
         headers: corsHeaders(),
@@ -67,8 +72,18 @@ exports.handler = async (event) => {
       };
     }
 
+    if (whopResponse.status === 403) {
+      console.error('Whop API key missing permissions (403) — needs member:basic:read and member:email:read');
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({ granted: false, error: 'api_permissions' })
+      };
+    }
+
     if (!whopResponse.ok) {
-      console.error(`Whop API error: ${whopResponse.status}`);
+      const body = await whopResponse.text();
+      console.error(`Whop API error ${whopResponse.status}: ${body}`);
       return {
         statusCode: 200,
         headers: corsHeaders(),
@@ -77,18 +92,25 @@ exports.handler = async (event) => {
     }
 
     const data = await whopResponse.json();
+    console.log(`Members returned: ${data.data?.length ?? 0}`);
 
-    // Grant access if at least one active membership found for this email + product
-    const granted = Array.isArray(data.data) && data.data.length > 0;
+    // Step 2 — confirm the returned member's email matches exactly
+    // (query also matches on name/username so we need to verify)
+    const members = Array.isArray(data.data) ? data.data : [];
+    const matched = members.some(
+      member => member.user?.email?.toLowerCase() === email
+    );
+
+    console.log(`Email match found: ${matched}`);
 
     return {
       statusCode: 200,
       headers: corsHeaders(),
-      body: JSON.stringify({ granted })
+      body: JSON.stringify({ granted: matched })
     };
 
   } catch (err) {
-    console.error('verify-access function error:', err);
+    console.error('verify-access error:', err);
     return {
       statusCode: 500,
       headers: corsHeaders(),
